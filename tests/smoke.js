@@ -134,6 +134,8 @@ async function runCombo(browser, base, vp, scheme) {
   // photo placeholders
   await page.goto(base + '#checks'); await page.waitForSelector('#v-checks.on');
   await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 400) { window.scrollTo(0, y); await new Promise(r => setTimeout(r, 60)); } });
+  /* phone layout: the photo guide is a horizontal swipe row, so lazy images off to the right load only once swiped */
+  await page.evaluate(async () => { const row = document.getElementById('photos'); for (let x = 0; x <= row.scrollWidth; x += 200) { row.scrollLeft = x; await new Promise(r => setTimeout(r, 60)); } row.scrollLeft = 0; });
   await page.waitForFunction(() => document.querySelectorAll('.ph .frame.empty').length === 11, null, { timeout: 15000 }).catch(() => {});
   const ph = await page.evaluate(() => ({ empty: [...document.querySelectorAll('.ph .frame')].map(f => f.textContent.trim()), eyebrows: [...document.querySelectorAll('.ph .k')].map(e => e.textContent.trim()) }));
   check(tag + '11 photo cards', ph.eyebrows.length === 11);
@@ -159,9 +161,9 @@ async function runCombo(browser, base, vp, scheme) {
   await page.click('#nav a[data-v="fixes"]'); await page.waitForFunction(() => scrollY === 0, null, { timeout: 4000 }).catch(() => {});
   check(tag + 'tapping active tab scrolls to top', (await page.evaluate(() => scrollY)) === 0);
 
-  // wake lock row, switch not a pill
+  // wake lock row, switch is a pill (Glass Ticket design)
   const sw = await page.evaluate(() => { const b = document.getElementById('wake'); const cs = getComputedStyle(b); return { r: cs.borderRadius, role: b.getAttribute('role') }; });
-  check(tag + 'switch is rounded rect', sw.r === '8px' && sw.role === 'switch', JSON.stringify(sw));
+  check(tag + 'switch is a pill', sw.r === '999px' && sw.role === 'switch', JSON.stringify(sw));
 
   check(tag + 'no page errors / console errors', errors.length === 0, errors.join(' || '));
   await ctx.close();
@@ -239,7 +241,6 @@ function staticChecks() {
   const bad = files.filter(f => fs.readFileSync(f, 'utf8').indexOf(EM) !== -1);
   check('no U+2014 in any text file', bad.length === 0, bad.join(','));
   const css = fs.readFileSync(path.join(SITE, 'css/styles.css'), 'utf8');
-  check('no 999px radius', !/999px/.test(css));
   check('no italic in css', !/font-style:\s*italic/.test(css) && !/<em>|<i>/.test(fs.readFileSync(path.join(SITE, 'index.html'), 'utf8')));
   const app = fs.readFileSync(path.join(SITE, 'js/app.js'), 'utf8');
   check('no claude/assets/db references', !/claude\.|\.use\(|assets\.|photoStore|filePick|Bake Log/i.test(app));

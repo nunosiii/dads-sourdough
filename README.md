@@ -49,4 +49,4 @@ Then open http://localhost:8000. To run the smoke test: `npm install` then `npm 
 ## Notes
 
 - Loaf count always starts at 2 and is not saved. Checked steps are saved in the browser under `sd-steps` and the schedule inputs under `sd-sched`.
-- Light mode tint is `#b44c17`, slightly darker than the original `#c4561d`, so small text passes WCAG AA contrast.
+- Design: "Glass Ticket" (frosted glass over a deep teal and navy backdrop, amber accent). Dark only, so the page ignores the system light/dark setting. Colors, glass and spring easing are tokens at the top of `css/styles.css`.
