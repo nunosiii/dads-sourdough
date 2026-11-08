@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dad's Famous Sourdough Loaf</title>
+<meta name="description" content="Dad's sourdough recipe with a bake-day schedule, readiness checks with photos, and troubleshooting.">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dad's Famous Sourdough Loaf">
+<meta property="og:description" content="Dad's sourdough recipe with a bake-day schedule, readiness checks with photos, and troubleshooting.">
+<meta property="og:image" content="photos/finished.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dad's Famous Sourdough Loaf">
+<meta name="twitter:description" content="Dad's sourdough recipe with a bake-day schedule, readiness checks with photos, and troubleshooting.">
+<meta name="twitter:image" content="photos/finished.jpg">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="top">
+  <div class="bar">
+    <h1 class="title">Dad's Famous Sourdough Loaf</h1>
+    <nav class="tabs segc" id="nav" aria-label="Sections">
+      <a href="#recipe" data-v="recipe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span>Recipe</span></a>
+      <a href="#checks" data-v="checks"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9"/></svg><span><span class="long">Checks &amp; </span>Photos</span></a>
+      <a href="#schedule" data-v="schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>Schedule</span></a>
+      <a href="#fixes" data-v="fixes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0 5 5L12 19l-3 1 1-3 7.7-7.7"/><path d="M14.7 6.3 17 4l3 3-2.3 2.3"/></svg><span><span class="long">Troubleshooting</span><span class="short">Fixes</span></span></a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<!-- RECIPE -->
+<section class="view" id="v-recipe" aria-labelledby="t-recipe">
+  <h2 class="largetitle" id="t-recipe">Recipe</h2>
+  <p class="subtitle">74.5% hydration, long cold proof for blisters, tight shape for height. KitchenAid 6qt with the dough hook, never above speed 2.</p>
+
+  <div class="group noprint" id="wakeGroup">
+    <div class="row">
+      <span class="label" id="wakeLabel">Keep screen on while baking<small id="wakeNote">Stops your phone or tablet from sleeping while this page is open.</small></span>
+      <button type="button" class="switch" id="wake" role="switch" aria-checked="false" aria-labelledby="wakeLabel"></button>
+    </div>
+  </div>
+
+  <h3 class="sh">Ingredients</h3>
+  <div class="seg segc noprint" id="scale" role="group" aria-label="Number of loaves"><button type="button" data-n="1">1 loaf</button><button type="button" data-n="2">2 loaves</button><button type="button" data-n="4">4 loaves</button></div>
+  <div class="warn bigbatch" id="bigBatch" role="status"><b>4 loaves won't fit in one 6qt bowl.</b> Mix two batches of 2 loaves about 15 minutes apart. Amounts below are the total for all 4; the method shows per-batch amounts.</div>
+  <div class="group" id="ing"></div>
+  <p class="footer"><b>Whole wheat is optional.</b> To skip it, use all bread flour (500g per loaf) and hold back an extra 5–10g water at first. Expect a milder flavor, a slightly slower bulk, and possibly a touch more height.</p>
+
+  <h3 class="sh sh-split"><span>Method · tap a step to check it off</span><span class="count" id="stepCount" aria-live="polite"></span></h3>
+  <div class="group steps" id="steps"></div>
+  <div class="actions noprint"><button type="button" class="btn plain small" id="clearSteps">Clear checks</button><span class="status" id="clearStatus" aria-live="polite"></span></div>
+
+  <h3 class="sh">Formula check</h3>
+  <div class="group" id="formula"></div>
+
+  <div class="noprint">
+    <h3 class="sh">Why it works</h3>
+    <div class="grid2" id="why"></div>
+
+    <h3 class="sh">Before every bake</h3>
+    <div class="group" id="before"></div>
+  </div>
+</section>
+
+<!-- CHECKS & PHOTOS -->
+<section class="view" id="v-checks" aria-labelledby="t-checks">
+  <h2 class="largetitle" id="t-checks">Checks &amp; Photos</h2>
+  <p class="subtitle">Go by these signs, not the clock.</p>
+
+  <h3 class="sh">Readiness checks</h3>
+  <div id="checkList"></div>
+
+  <h3 class="sh">What to expect · photo guide</h3>
+  <p class="footer lead" id="photoNote">What each stage looks like in Dad's kitchen. Tap a photo to enlarge.</p>
+  <div class="photos" id="photos"></div>
+</section>
+
+<!-- SCHEDULE -->
+<section class="view" id="v-schedule" aria-labelledby="t-schedule">
+  <h2 class="largetitle" id="t-schedule">Schedule</h2>
+  <p class="subtitle">Pick when you want to bake. It works backward from there.</p>
+  <div class="card form">
+    <div><label class="f" for="anchor">Work backward from</label><select id="anchor"><option value="oven">First loaf goes in the oven</option><option value="slice">First loaf ready to slice</option></select></div>
+    <div><label class="f" for="when">Date and time</label><input type="datetime-local" id="when"></div>
+    <div><label class="f" for="peak">Starter peak <span class="hint">(hrs after feeding)</span></label><input type="number" inputmode="decimal" id="peak" min="2" max="14" step="0.5" value="5"></div>
+    <div><label class="f" for="bulk">Bulk ferment <span class="hint">(hrs)</span></label><input type="number" inputmode="decimal" id="bulk" min="2" max="12" step="0.5" value="4.5"></div>
+    <div><label class="f" for="cold">Cold proof <span class="hint">(hrs, 12–16)</span></label><input type="number" inputmode="decimal" id="cold" min="8" max="48" step="1" value="14"></div>
+    <div><span class="f">Loaves</span><div class="note" id="loafNote"></div></div>
+  </div>
+  <div class="warn" id="warn" role="status"></div>
+  <div class="group sched" id="sched"></div>
+  <div class="actions"><button type="button" class="btn" id="copy">Copy schedule</button><button type="button" class="btn plain" id="resetSched">Reset defaults</button><span class="status" id="copyStatus" role="status" aria-live="polite"></span></div>
+  <p class="footer">Steps marked ☾ land between 11pm and 6am. Shift the bake time, or adjust cold proof anywhere in 12–16 hrs.</p>
+</section>
+
+<!-- FIXES -->
+<section class="view" id="v-fixes" aria-labelledby="t-fixes">
+  <h2 class="largetitle" id="t-fixes">Troubleshooting</h2>
+  <p class="subtitle">Fix one thing at a time, starting with the first step listed.</p>
+  <div id="fixList"></div>
+</section>
+<p class="footer sitefoot">Dad's Famous Sourdough Loaf · Martinez family kitchen</p>
+</main>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+  <div class="scrim"></div>
+  <button type="button" class="lbclose" aria-label="Close photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <figure class="lbfig"><img alt=""><figcaption class="cap"></figcaption></figure>
+</div>
+
+<noscript><p class="footer" style="margin:1rem">This page needs JavaScript turned on to show the recipe.</p></noscript>
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dad's Famous Sourdough Loaf</title>
+<style>
+  :root {
+    --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --muted: #6e6e73; --sep: #d1d1d6; --fill: #e9e9eb;
+    --tint: #c4561d; --tint-soft: rgba(196, 86, 29, .10);
+    --green: #248a3d; --green-soft: rgba(52, 199, 89, .14); --red: #d70015; --red-soft: rgba(255, 59, 48, .10);
+    --amber: #a05a00; --amber-soft: rgba(255, 159, 10, .16);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000000; --card: #1c1c1e; --ink: #f2f2f7; --muted: #98989f; --sep: #38383a; --fill: #2c2c2e;
+      --tint: #ff9f0a; --tint-soft: rgba(255, 159, 10, .16);
+      --green: #30d158; --green-soft: rgba(48, 209, 88, .16); --red: #ff453a; --red-soft: rgba(255, 69, 58, .16);
+      --amber: #ffd60a; --amber-soft: rgba(255, 214, 10, .14); }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 19px/1.47 var(--font); letter-spacing: -.01em; }
+  a { color: var(--tint); text-decoration: none; }
+
+  /* header + tabs */
+  header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: .5px solid var(--sep); }
+  .bar { max-width: 980px; margin: 0 auto; padding: 12px 28px 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; }
+  .bar .title { font-size: 20px; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
+  nav.tabs { display: flex; background: var(--fill); border-radius: 10px; padding: 3px; gap: 2px; }
+  nav.tabs a { display: flex; align-items: center; gap: 7px; color: var(--ink); font-size: 16px; font-weight: 600; padding: 8px 14px; border-radius: 8px; min-height: 40px; white-space: nowrap; }
+  nav.tabs a svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  nav.tabs a.on { background: var(--card); color: var(--tint); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 8px 28px 90px; }
+  section.view { display: none; }
+  section.view.on { display: block; }
+  .largetitle { font-size: 34px; font-weight: 700; letter-spacing: -.025em; margin: 18px 4px 4px; line-height: 1.15; }
+  .subtitle { color: var(--muted); margin: 0 4px 8px; }
+  h2.sh { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; color: var(--muted); margin: 30px 18px 8px; }
+  .footer { font-size: 15px; color: var(--muted); margin: 8px 18px 0; }
+
+  /* inset grouped lists */
+  .group { background: var(--card); border-radius: 12px; overflow: hidden; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 18px; min-height: 52px; position: relative; }
+  .row + .row::before { content: ""; position: absolute; top: 0; left: 18px; right: 0; border-top: .5px solid var(--sep); }
+  .row .val { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .row .val.strong { color: var(--ink); font-weight: 600; }
+  .row .label small { display: block; color: var(--muted); font-size: 15px; }
+  .card { background: var(--card); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
+  .card h3 { font-size: 20px; margin: 0 0 6px; letter-spacing: -.015em; }
+  .card p { margin: 0 0 10px; } .card p:last-child { margin: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* segmented control */
+  .seg { display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; margin: 0 0 12px 4px; }
+  .seg button { font: inherit; font-size: 16px; font-weight: 600; border: 0; background: transparent; color: var(--ink); padding: 7px 18px; border-radius: 7px; min-height: 36px; cursor: pointer; }
+  .seg button.on { background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.04); }
+
+  /* buttons */
+  .btn { font: inherit; font-size: 17px; font-weight: 600; border: 0; border-radius: 12px; padding: 12px 20px; min-height: 48px; cursor: pointer; background: var(--tint); color: #fff; }
+  .btn.plain { background: var(--tint-soft); color: var(--tint); }
+  .btn.small { font-size: 15px; padding: 7px 12px; min-height: 36px; border-radius: 9px; }
+  .btn.danger { background: var(--red-soft); color: var(--red); }
+
+  /* method steps */
+  .steps .step { display: flex; gap: 14px; padding: 16px 18px; cursor: pointer; position: relative; user-select: none; -webkit-user-select: none; }
+  .steps .step + .step::before { content: ""; position: absolute; top: 0; left: 64px; right: 0; border-top: .5px solid var(--sep); }
+  .steps .num { flex: 0 0 32px; height: 32px; border-radius: 50%; border: 2px solid var(--tint); color: var(--tint); font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .steps .step.done .num { background: var(--green); border-color: var(--green); color: #fff; }
+  .steps .step.done .body { opacity: .45; }
+  .steps .name { font-weight: 600; }
+  .steps .dur { color: var(--tint); font-weight: 600; font-size: 15px; margin-left: 8px; }
+  .thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .thumbs img { width: 128px; height: 96px; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+
+  /* checks */
+  .check .when { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: 4px; }
+  .pill-ok, .pill-no { border-radius: 10px; padding: 10px 14px; margin-top: 10px; }
+  .pill-ok { background: var(--green-soft); } .pill-ok b { color: var(--green); }
+  .pill-no { background: var(--red-soft); } .pill-no b { color: var(--red); }
+
+  /* photo guide */
+  .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .ph { background: var(--card); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .ph .frame { aspect-ratio: 4 / 3; background: var(--fill); display: flex; align-items: center; justify-content: center; color: var(--muted); text-align: center; font-size: 15px; }
+  .ph .frame.empty { aspect-ratio: 16 / 7; padding: 16px; }
+  .ph .frame img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+  .ph .frame svg { width: 34px; height: 34px; stroke: currentColor; fill: none; stroke-width: 1.6; display: block; margin: 0 auto 6px; }
+  .ph .info { padding: 12px 16px 14px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .ph .info .k { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+  .ph .info .t { font-weight: 600; }
+  .ph .info .tip { font-size: 15px; color: var(--muted); }
+  .ph .acts { display: flex; gap: 8px; margin-top: 8px; }
+  input[type=file] { display: none; }
+
+  /* forms */
+  label.f { display: block; font-size: 15px; font-weight: 600; color: var(--muted); margin: 0 0 6px 2px; }
+  .hint { font-weight: 400; }
+  input, select, textarea { width: 100%; font: inherit; font-size: 18px; color: var(--ink); background: var(--bg); border: 0; border-radius: 10px; padding: 12px 14px; min-height: 48px; -webkit-appearance: none; appearance: none; }
+  select { background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 36px; }
+  textarea { min-height: 96px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--tint); outline-offset: 0; }
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 18px; }
+  .wide { grid-column: 1 / -1; }
+
+  /* schedule */
+  .warn { background: var(--amber-soft); border-radius: 12px; padding: 14px 18px; margin-top: 14px; display: none; }
+  .warn b { color: var(--amber); }
+  .sched .dayhead { padding: 18px 18px 6px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); background: var(--bg); }
+  .sched .row { align-items: flex-start; justify-content: flex-start; }
+  .sched .time { flex: 0 0 96px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sched .row.key .time { color: var(--tint); }
+  .sched .row.night .time::after { content: " ☾"; color: var(--amber); }
+  .sched .note, .note { color: var(--muted); font-size: 16px; }
+  .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .status { color: var(--muted); font-size: 15px; }
+
+  /* bake log */
+  .stars { display: flex; gap: 6px; }
+  .stars button { font: inherit; font-weight: 600; width: 46px; height: 44px; border: 0; border-radius: 10px; background: var(--bg); color: var(--muted); cursor: pointer; }
+  .stars button.on { background: var(--tint); color: #fff; }
+  .bake .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .bake dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px 16px; margin: 10px 0; }
+  .bake dt { font-size: 14px; color: var(--muted); } .bake dd { margin: 0; font-weight: 600; }
+  .empty { color: var(--muted); text-align: center; padding: 26px; background: var(--card); border-radius: 12px; }
+
+  /* fixes */
+  ol.fx { margin: 6px 0 0; padding-left: 24px; } ol.fx li { margin-bottom: 6px; }
+  .src { font-size: 15px; color: var(--muted); margin-top: 8px; }
+
+  /* lightbox */
+  #lb { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.88); display: none; align-items: center; justify-content: center; padding: 20px; flex-direction: column; gap: 12px; }
+  #lb.on { display: flex; }
+  #lb img { max-width: 100%; max-height: 82vh; border-radius: 12px; }
+  #lb .cap { color: #fff; font-weight: 600; }
+
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 680px) {
+    body { font-size: 18px; }
+    header { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bg); }
+    .bar { padding: 10px 16px; justify-content: center; }
+    main { padding: 0 16px 110px; }
+    .largetitle { font-size: 32px; margin-top: 14px; }
+    nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; border-radius: 0; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--card) 86%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-top: .5px solid var(--sep); justify-content: space-around; }
+    nav.tabs a { flex-direction: column; gap: 2px; font-size: 11px; font-weight: 500; padding: 4px 2px; min-height: 50px; color: var(--muted); flex: 1; justify-content: center; }
+    nav.tabs a svg { width: 26px; height: 26px; }
+    nav.tabs a.on { background: transparent; box-shadow: none; color: var(--tint); }
+    .long { display: none; }
+    .card { padding: 16px; }
+    .sched .time { flex-basis: 84px; }
+    .photos { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 681px) { .short { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="title">Dad's Famous Sourdough Loaf</div>
+    <nav class="tabs" id="nav">
+      <a href="#recipe" data-v="recipe"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span>Recipe</span></a>
+      <a href="#checks" data-v="checks"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9"/></svg><span><span class="long">Checks &amp; </span>Photos</span></a>
+      <a href="#schedule" data-v="schedule"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>Schedule</span></a>
+      <a href="#fixes" data-v="fixes"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L12 19l-3 1 1-3 7.7-7.7"/><path d="M14.7 6.3 17 4l3 3-2.3 2.3"/></svg><span><span class="long">Troubleshooting</span><span class="short">Fixes</span></span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- RECIPE -->
+<section class="view" id="v-recipe">
+  <div class="largetitle">Recipe</div>
+  <p class="subtitle">74.5% hydration, long cold proof for blisters, tight shape for height. KitchenAid 6qt with the dough hook, never above speed 2.</p>
+
+  <h2 class="sh">Ingredients</h2>
+  <div class="seg" id="scale"><button data-n="1">1 loaf</button><button data-n="2" class="on">2 loaves</button><button data-n="4">4 loaves</button></div>
+  <div class="warn" id="bigBatch" style="margin:0 0 12px"><b>4 loaves won't fit in one 6qt bowl.</b> Mix two batches of 2 loaves about 15 minutes apart. Amounts below are the total for all 4; the method shows per-batch amounts.</div>
+  <div class="group" id="ing"></div>
+  <p class="footer"><b>Whole wheat is optional.</b> To skip it, use all bread flour (500g per loaf) and hold back an extra 5–10g water at first. Expect a milder flavor, a slightly slower bulk, and possibly a touch more height.</p>
+
+  <h2 class="sh">Method · tap a step to check it off</h2>
+  <div class="group steps" id="steps"></div>
+  <div class="actions" style="margin-left:4px"><button class="btn plain small" id="clearSteps">Clear checks</button></div>
+
+  <h2 class="sh">Formula check</h2>
+  <div class="group">
+    <div class="row"><span class="label">Hydration<small>410g water ÷ 550g flour per loaf</small></span><span class="val strong">74.5%</span></div>
+    <div class="row"><span class="label">Salt<small>target 1.8–2.2%</small></span><span class="val strong">1.8%</span></div>
+    <div class="row"><span class="label">Starter (inoculation)<small>target 15–25%</small></span><span class="val strong">20%</span></div>
+    <div class="row"><span class="label">Whole wheat<small>target 5–20%</small></span><span class="val strong">9%</span></div>
+    <div class="row"><span class="label">Dough temp<small>target 75–80°F</small></span><span class="val strong">76–78°F</span></div>
+    <div class="row"><span class="label">Cold proof<small>target 12–48 hrs</small></span><span class="val strong">14 hrs</span></div>
+    <div class="row"><span class="label">Internal temp when done<small>target 205–210°F</small></span><span class="val strong">208°F</span></div>
+  </div>
+
+  <h2 class="sh">Why it works</h2>
+  <div class="grid2">
+    <div class="card"><h3>Height</h3><p>Bread flour plus mixer kneading builds a strong gluten network that holds gas. Stopping bulk at 50–75% rise leaves fuel for oven spring. The lid traps steam so the crust stays soft long enough to expand.</p></div>
+    <div class="card"><h3>Blisters</h3><p>The long cold proof builds acids and gas under a moist surface. Cold dough hitting a 475°F pot puffs those pockets and browns them.</p></div>
+  </div>
+
+  <h2 class="sh">Before every bake</h2>
+  <div class="group">
+    <div class="row">Starter doubles within 4–6 hrs of feeding</div>
+    <div class="row">Oven thermometer checked</div>
+    <div class="row">Container has a tape mark at the starting level</div>
+    <div class="row">Probe thermometer ready for dough and loaf temps</div>
+  </div>
+</section>
+
+<!-- CHECKS & PHOTOS -->
+<section class="view" id="v-checks">
+  <div class="largetitle">Checks &amp; Photos</div>
+  <p class="subtitle">Go by these signs, not the clock.</p>
+
+  <h2 class="sh">Readiness checks</h2>
+  <div class="card check"><div class="when">Before step 2 · Starter</div><h3>Use it at its peak</h3>
+    <div class="pill-ok"><b>Ready:</b> doubled or more since feeding (rubber band on the jar), domed top just starting to flatten, bubbly throughout, smells tangy and yeasty.</div>
+    <div class="pill-no"><b>Not yet:</b> not doubled, so wait. <b>Too late:</b> collapsed with streaks down the jar, or smells like nail polish. Feed again and wait for the next peak.</div>
+    <p class="note" style="margin-top:10px">Float test (optional): a spoonful that floats is ready. Whole wheat starters can sink even when ready, so trust the doubling first.</p></div>
+  <div class="card check"><div class="when">End of step 3 · Windowpane test</div><h3>Gluten developed enough</h3>
+    <div class="pill-ok"><b>Ready:</b> a golf-ball piece stretches slowly into a thin, translucent sheet before tearing.</div>
+    <div class="pill-no"><b>Tears fast:</b> mix 1–2 more minutes on speed 2. A partial windowpane is fine at this hydration; the folds finish the job.</div></div>
+  <div class="card check"><div class="when">End of step 4 · Bulk ferment</div><h3>Stop at 50–75%, not doubled</h3>
+    <div class="pill-ok"><b>Ready:</b> 50–75% rise on the tape mark, domed edges, bubbles on top and sides, jiggles when you shake the container.</div>
+    <div class="pill-no"><b>Not yet:</b> check every 30 min. <b>Doubled or sloppy:</b> shape now and expect less height.</div></div>
+  <div class="card check"><div class="when">After cold proof · Poke test</div><h3>Proofed and ready to bake</h3>
+    <div class="pill-ok"><b>Ready:</b> a floured finger poked 1/2 inch springs back slowly and leaves a small dent.</div>
+    <div class="pill-no"><b>Springs back fast:</b> more fridge time, or 30–60 min at room temp. <b>No spring back:</b> bake now and score shallow.</div></div>
+  <div class="card check"><div class="when">End of step 10 · Done baking</div><h3>Fully baked</h3>
+    <div class="pill-ok"><b>Ready:</b> 208°F internal, deep mahogany crust, hollow thump on the bottom.</div>
+    <div class="pill-no"><b>Not yet:</b> 5 more minutes uncovered, then check again.</div></div>
+
+  <h2 class="sh">What to expect · photo guide</h2>
+  <p class="footer" style="margin:0 18px 12px" id="photoNote">What each stage looks like in Dad's kitchen. Tap a photo to enlarge.</p>
+  <div class="photos" id="photos"></div>
+</section>
+
+<!-- SCHEDULE -->
+<section class="view" id="v-schedule">
+  <div class="largetitle">Schedule</div>
+  <p class="subtitle">Pick when you want to bake. It works backward from there.</p>
+  <div class="card form">
+    <div><label class="f" for="anchor">Work backward from</label><select id="anchor"><option value="oven">First loaf goes in the oven</option><option value="slice">First loaf ready to slice</option></select></div>
+    <div><label class="f" for="when">Date and time</label><input type="datetime-local" id="when"></div>
+    <div><label class="f" for="peak">Starter peak <span class="hint">(hrs after feeding)</span></label><input type="number" inputmode="decimal" id="peak" min="2" max="14" step="0.5" value="5"></div>
+    <div><label class="f" for="bulk">Bulk ferment <span class="hint">(hrs)</span></label><input type="number" inputmode="decimal" id="bulk" min="2" max="12" step="0.5" value="4.5"></div>
+    <div><label class="f" for="cold">Cold proof <span class="hint">(hrs, 12–16)</span></label><input type="number" inputmode="decimal" id="cold" min="8" max="48" step="1" value="14"></div>
+    <div><label class="f">Loaves</label><div class="note" id="loafNote" style="padding-top:10px"></div></div>
+  </div>
+  <div class="warn" id="warn"></div>
+  <div class="group sched" id="sched" style="margin-top:14px"></div>
+  <div class="actions"><button class="btn" id="copy">Copy schedule</button><button class="btn plain" id="resetSched">Reset defaults</button><span class="status" id="copyStatus"></span></div>
+  <p class="footer">Steps marked ☾ land between 11pm and 6am. Shift the bake time, or adjust cold proof anywhere in 12–16 hrs.</p>
+</section>
+
+<!-- FIXES -->
+<section class="view" id="v-fixes">
+  <div class="largetitle">Troubleshooting</div>
+  <p class="subtitle">Fix one thing at a time, starting with the first step listed.</p>
+  <div id="fixList"></div>
+</section>
+  <p class="footer" style="text-align:center;margin-top:40px">Dad's Famous Sourdough Loaf · Martinez family kitchen</p>
+</main>
+
+<div id="lb"><img alt=""><div class="cap"></div></div>
+
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const ls = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+
+  /* ---------- tabs ---------- */
+  const VIEWS = ['recipe', 'checks', 'schedule', 'fixes'];
+  function route() {
+    const h = location.hash.replace('#', '');
+    const v = VIEWS.includes(h) ? h : 'recipe';
+    VIEWS.forEach(x => $('v-' + x).classList.toggle('on', x === v));
+    document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v));
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+
+  /* ---------- photo slots ---------- */
+  const PHOTOS = [
+    { k: 'starter-fed', t: 'Starter, just fed', when: 'Right after feeding', tip: 'Side view of the jar with the rubber band at the starting level.' },
+    { k: 'starter-peak', t: 'Starter at peak', when: 'Before step 2', tip: 'Same jar, same angle: the rise above the band and bubbles through the glass.' },
+    { k: 'windowpane', t: 'Windowpane', when: 'End of step 3', tip: 'Stretched dough held up to a window so light shows through.' },
+    { k: 'bulk-start', t: 'Bulk start', when: 'Start of step 4', tip: 'Container from the side, tape mark visible.' },
+    { k: 'bulk-end', t: 'Bulk done', when: 'End of step 4', tip: 'Same spot and angle: rise vs. the tape mark, domed edges, side bubbles.' },
+    { k: 'shaped', t: 'Shaped in banneton', when: 'Step 6', tip: 'Top-down, seam side up.' },
+    { k: 'poke', t: 'Poke test', when: 'After cold proof', tip: 'Close-up of the dent right after poking.' },
+    { k: 'scored', t: 'Scored', when: 'Step 9', tip: 'Top-down on parchment, just before it goes in the pot.' },
+    { k: 'lid-off', t: 'Lid off', when: 'Start of step 10', tip: 'Straight down into the pot: oven spring and a pale crust.' },
+    { k: 'finished', t: 'Finished loaf', when: 'Out of the oven', tip: 'Side profile at eye level for height and ear; add a blister close-up if you can.' },
+    { k: 'crumb', t: 'Crumb', when: 'After the 2-hr cool', tip: 'Cut down the middle, straight-on, in daylight.' }
+  ];
+  const STEP_PHOTOS = { 1: ['starter-fed', 'starter-peak'], 2: ['windowpane'], 3: ['bulk-start', 'bulk-end'], 5: ['shaped'], 8: ['poke', 'scored'], 9: ['lid-off', 'finished'], 10: ['crumb'] };
+  let photoMap = {};          // k -> {id, url}
+  let photoStore = null;      // db doc ref
+  let assets = null;          // assets namespace
+  let pendingSlot = null;
+
+  const photoUrl = k => 'photos/' + k + '.jpg';
+  const CAM = '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="3.5"/></svg>';
+
+  function renderPhotos() {
+    $('photos').innerHTML = PHOTOS.map((p, i) => {
+      const u = photoUrl(p.k);
+      return '<div class="ph"><div class="frame' + (u ? '' : ' empty') + '">' + (u ? '<img src="' + esc(u) + '" data-zoom="' + p.k + '" alt="' + esc(p.t) + '" onerror="this.parentNode.classList.add(\'empty\');this.parentNode.innerHTML=\'<div>Photo coming soon</div>\'">' : '<div>' + CAM + 'No photo yet</div>') + '</div>' +
+        '<div class="info"><span class="k">' + (i + 1) + ' · ' + esc(p.when) + '</span><span class="t">' + esc(p.t) + '</span><span class="tip">' + esc(p.tip) + '</span>' +
+        (assets ? '<div class="acts"><button class="btn plain small" data-add="' + p.k + '">' + (u ? 'Replace' : 'Add photo') + '</button>' + (u ? '<button class="btn danger small" data-rm="' + p.k + '">Remove</button>' : '') + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+  }
+  $('photos').addEventListener('click', async e => {
+    const add = e.target.closest('[data-add]'), rm = e.target.closest('[data-rm]');
+    if (add) { pendingSlot = add.dataset.add; $('filePick').value = ''; $('filePick').click(); }
+    if (rm) {
+      if (rm.dataset.confirm !== '1') { rm.dataset.confirm = '1'; rm.textContent = 'Tap to confirm'; return; }
+      const k = rm.dataset.rm, old = photoMap[k];
+      const next = Object.assign({}, photoMap); delete next[k];
+      try { await photoStore.set(next); photoMap = next; renderPhotos(); renderSteps(); if (old && old.id) assets.delete(old.id).catch(() => {}); }
+      catch (err) { $('photoNote').textContent = 'Could not remove that photo. Try again.'; }
+    }
+  });
+
+  async function shrink(file) {
+    try {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      const max = 1600, w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, max / Math.max(w, h));
+      const c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+      return blob || file;
+    } catch (e) { return file; }
+  }
+  if ($('filePick')) $('filePick').addEventListener('change', async () => {
+    const f = $('filePick').files[0], k = pendingSlot; if (!f || !k || !assets || !photoStore) return;
+    const note = $('photoNote'), prev = note.textContent;
+    note.textContent = 'Uploading…';
+    try {
+      const blob = await shrink(f);
+      const r = await assets.upload(blob);
+      const old = photoMap[k];
+      const next = Object.assign({}, photoMap, { [k]: { id: r.id, url: r.url } });
+      await photoStore.set(next); photoMap = next;
+      if (old && old.id) assets.delete(old.id).catch(() => {});
+      renderPhotos(); renderSteps(); note.textContent = 'Saved.'; setTimeout(() => { note.textContent = prev; }, 2000);
+    } catch (err) { note.textContent = 'Upload failed. Try again.'; }
+  });
+
+  /* lightbox */
+  document.addEventListener('click', e => {
+    const z = e.target.closest('[data-zoom]');
+    if (z) { e.stopPropagation(); const p = PHOTOS.find(x => x.k === z.dataset.zoom); $('lb').querySelector('img').src = z.src; $('lb').querySelector('.cap').textContent = p ? p.t : ''; $('lb').classList.add('on'); }
+  }, true);
+  $('lb').addEventListener('click', () => $('lb').classList.remove('on'));
+
+  /* ---------- recipe ---------- */
+  const ING = [
+    ['Bread flour', '12.7%+ protein', 450, 'g'], ['Whole wheat flour', '', 50, 'g'],
+    ['Water', '~85°F, for autolyse', 340, 'g'], ['Active starter', '100% hydration, at peak', 100, 'g'],
+    ['Fine sea salt', '', 10, 'g'], ['Water, held back', 'added with the salt', 20, 'g'],
+    ['Rice flour', 'banneton dusting', 1, ' tbsp']
+  ];
+  let loaves = 2, schedReady = false;
+  const STEPS_FOR = n => { const m = n === 4 ? 2 : n, per = n === 4 ? ' Two batches: these amounts are per batch.' : ''; return [
+    ['Autolyse', '45 min', 'In the KitchenAid bowl, mix ' + (450 * m) + 'g bread flour, ' + (50 * m) + 'g whole wheat, and ' + (340 * m) + 'g water with the dough hook on speed 1 for about 1 minute, just until no dry flour remains. Cover and rest.' + per],
+    ['Add starter', '4 min', 'Add ' + (100 * m) + 'g starter at its peak. Speed 1 for 1 minute, then speed 2 for 3 minutes. Never go above speed 2 with bread dough.'],
+    ['Salt and gluten', '3–5 min', 'Sprinkle in ' + (10 * m) + 'g salt, drizzle in the held-back ' + (20 * m) + 'g water on speed 2. Mix until the dough pulls away from the bowl sides. Do the windowpane test. Stop if dough temp passes 80°F.'],
+    ['Bulk ferment', '4–5 hrs at 76°F', 'Move to a lightly oiled straight-sided container and mark the starting level. 3 sets of coil folds, 30 min apart, in the first 90 min. Done at 50–75% rise. Do not let it double.'],
+    ['Preshape', '30 min rest', (n > 1 ? 'Divide into ' + n + ' equal pieces (weigh them). ' : '') + 'Unfloured counter, round with a bench scraper, rest uncovered.'],
+    ['Final shape', '', 'Flour the top, flip, shape a tight boule or batard by dragging it toward you to build tension. Into a rice-floured banneton, seam side up.' + (n > 1 ? ' One banneton per loaf.' : '')],
+    ['Cold retard', '12–16 hrs', 'Cover and refrigerate at 36–40°F. This is the blister step.'],
+    ['Preheat', '60 min', 'Lidded Dutch oven in the oven at 500°F.'],
+    ['Score and bake covered', '20 min', 'Do the poke test. Straight from the fridge onto parchment. One decisive slash at 30–45°, about 1/2 inch deep. Load, cover, drop to 475°F.' + (n > 1 ? ' Other loaves wait in the fridge.' : '')],
+    ['Bake uncovered', '20–25 min', 'Lid off, drop to 450°F. Bake to deep mahogany and 208°F internal.' + (n > 1 ? ' Then put the empty pot back at 500°F for 10 min and repeat steps 9–10 for each remaining loaf (about 55 min per loaf).' : '')],
+    ['Cool', '2 hrs', 'On a rack before slicing. Cutting early makes the crumb gummy.']
+  ]; };
+  let done = ls.get('sd-steps') || [];
+  function renderSteps() {
+    $('steps').innerHTML = STEPS_FOR(loaves).map((s, i) => {
+      const ph = (STEP_PHOTOS[i] || []).filter(k => photoUrl(k));
+      return '<div class="step' + (done.includes(i) ? ' done' : '') + '" data-i="' + i + '"><div class="num">' + (done.includes(i) ? '✓' : i + 1) + '</div><div class="body"><span class="name">' + s[0] + '</span>' + (s[1] ? '<span class="dur">' + s[1] + '</span>' : '') + '<div>' + s[2] + '</div>' +
+        (ph.length ? '<div class="thumbs">' + ph.map(k => '<img src="' + esc(photoUrl(k)) + '" data-zoom="' + k + '" alt="" onerror="this.remove()">').join('') + '</div>' : '') + '</div></div>';
+    }).join('');
+  }
+  $('steps').addEventListener('click', e => {
+    if (e.target.closest('[data-zoom]')) return;
+    const el = e.target.closest('.step'); if (!el) return;
+    const i = Number(el.dataset.i);
+    done = done.includes(i) ? done.filter(x => x !== i) : done.concat(i);
+    ls.set('sd-steps', done); renderSteps();
+  });
+  $('clearSteps').addEventListener('click', () => { done = []; ls.set('sd-steps', done); renderSteps(); });
+
+  function renderIng(n) {
+    loaves = n;
+    $('ing').innerHTML = ING.map(r => '<div class="row"><span class="label">' + r[0] + (r[1] ? '<small>' + r[1] + '</small>' : '') + '</span><span class="val strong">' + (r[2] * n) + r[3] + '</span></div>').join('');
+    document.querySelectorAll('#scale button').forEach(b => b.classList.toggle('on', Number(b.dataset.n) === n));
+    $('bigBatch').style.display = n === 4 ? 'block' : 'none';
+    renderSteps();
+    if (schedReady) buildSchedule();
+  }
+  document.querySelectorAll('#scale button').forEach(b => b.addEventListener('click', () => renderIng(Number(b.dataset.n))));
+  renderIng(2);
+
+  /* ---------- troubleshooting ---------- */
+  const KA = 'https://www.kingarthurbaking.com';
+  const SRC = {
+    notRising: [KA + '/blog/2024/12/19/why-is-my-sourdough-starter-not-rising', 'Why is my sourdough starter not rising?'],
+    faq: [KA + '/learn/sourdough', 'King Arthur’s guide to sourdough'],
+    tooActive: [KA + '/blog/2021/07/29/bread-coach-can-sourdough-starter-be-too-active', 'Can sourdough starter be too active?'],
+    create: [KA + '/learn/guides/sourdough/create', 'Sourdough: create a starter'],
+    tipsPdf: ['https://shop.kingarthurbaking.com/content/recipes/SourdoughTipsAndRecipes_2026.pdf', 'Sourdough Tips & Recipes (PDF)'],
+    doughSlow: [KA + '/blog/2023/03/23/ask-the-bread-coach-my-dough-isnt-rising-what-now', 'My dough isn’t rising: what now?'],
+    proofing: [KA + '/blog/2022/05/06/benefits-of-bread-proofing-box', 'How to ensure perfectly proofed bread'],
+    crumb: [KA + '/blog/2020/11/05/how-to-produce-an-open-crumb-in-sourdough-bread', 'How to produce an open crumb'],
+    risen: [KA + '/blog/2022/08/22/how-to-tell-if-bread-dough-has-risen-enough', 'How to tell if dough has risen enough'],
+    banneton: [KA + '/blog/2023/01/25/bannetons-brotforms-proofing-baskets', 'Bannetons and proofing baskets: a guide'],
+    ears: [KA + '/blog/2021/02/16/all-about-sourdough-ears', 'Everything to know about sourdough ears'],
+    bottom: [KA + '/blog/2025/07/30/the-bottom-of-my-bread-gets-too-dark', 'Keep your bread’s bottom from getting too dark'],
+    dark: [KA + '/blog/2021/11/03/ask-the-bread-coach-just-how-dark-should-i-be-baking-my-bread', 'Just how dark should I bake my bread?'],
+    crusty: [KA + '/comment/521616', 'How to make crusty bread'],
+    tips: [KA + '/blog/2015/08/11/sourdough-baking-tips', 'Sourdough baking tips']
+  };
+  const FIX = [
+    { group: 'Starter', items: [
+      ['Starter isn’t doubling', [
+        'At 75°F or warmer, a healthy starter doubles 6–8 hrs after feeding. Below 68°F it can take much longer.',
+        'Move it somewhere warm (top of the fridge works) and feed with 80–90°F water.',
+        'Give it a snack: swap 10–20% of the feeding flour for rye or whole wheat to speed it up.'], ['notRising']],
+      ['Lots of small bubbles, but no rise', [
+        'It’s probably too thin to trap gas. If it pours easily, feed it a bit more flour until it’s gloppy.',
+        'Or feed with bread flour, which absorbs more water.'], ['faq']],
+      ['Can’t tell if it doubled (it already fell)', [
+        'Starters sink after they peak. Look for fresh residue on the jar sides above the current level; that’s proof it doubled.',
+        'Underripe = hasn’t doubled yet. Overripe = doubled or tripled and sinking. Use it in between.'], ['tipsPdf']],
+      ['Starter is “too active” and loaves slump', [
+        'An overly active starter makes the dough overproof fast.',
+        'Feed with less starter: e.g. 20g starter + 30g water + 50g flour instead of equal parts.'], ['tooActive', 'faq']],
+      ['Coming out of the fridge for a bake', [
+        'About 2 days before baking, take it out and feed it. Then feed twice a day, about 12 hrs apart.',
+        'Make the last feeding 6–12 hrs before you mix the dough.'], ['tipsPdf']],
+      ['Gray or dark liquid on top', [
+        'That’s “hooch” (alcohol) from a hungry starter. Normal. Stir it in or pour it off, then feed every 12 hrs until it doubles again.',
+        'Toss it and start over only if you see mold, a pink or orange tint/streak, or it smells rotten.'], ['notRising', 'create']]
+    ]},
+    { group: 'Dough and rise', items: [
+      ['Loaf spreads flat', [
+        'Drop the held-back water first.',
+        'Shorten bulk (stop at 50% rise).',
+        'If bulk races ahead every time, your starter may be too active (see Starter above).'], ['tooActive']],
+      ['Dough is rising slowly', [
+        'Take its temperature. King Arthur aims for 75–80°F dough.',
+        'If it’s cool, extend bulk by 25–50% instead of rushing it. Home bakers usually underferment, which gives squat, dense loaves.',
+        'Warm spot trick: microwave a half-full jar of water for 2 min, then put the dough in the microwave with it (don’t turn it on).'], ['doughSlow']],
+      ['Dense, tight crumb', [
+        'Let bulk go longer (see above).',
+        'Use starter when it just turns ripe, not long after; overripe starter adds acid that weakens gluten.',
+        'Handle the dough gently at preshape and shape so you keep the gas.'], ['crumb']],
+      ['Shaped loaf proofs too fast in the fridge', [
+        'Put the loaves in the fridge uncovered for the first 30 min to pull the heat out, then cover them.'], ['tooActive']],
+      ['Dough forms a dry skin', [
+        'Keep it covered at every stage. A dry skin constricts the rise and stops full expansion.'], ['proofing']]
+    ]},
+    { group: 'Shaping, scoring, baking', items: [
+      ['Dough sticks to the banneton', [
+        'Shape gently: tears expose the sticky inside.',
+        'Dust lightly but thoroughly with rice flour or semolina; a linen liner helps a lot.',
+        'If it sticks, flip the banneton onto parchment and wait about 5 min. Gravity usually releases it.'], ['banneton']],
+      ['No ear, or the score seals back up', [
+        'Score at least 1/4–1/2 inch deep at a shallow angle so it doesn’t fuse in the oven.',
+        'Overproofed dough doesn’t spring enough to open the score. Watch bulk and the poke test.',
+        'Dough too weak or too wet: drop some held-back water, or add an extra set of folds.'], ['ears']],
+      ['No blisters', [
+        'Longer cold proof (18–24 hrs).',
+        'Colder fridge, and bake straight from the fridge.'], []],
+      ['Bottom crust burns', [
+        'Dark-interior Dutch ovens run hot on the bottom. Don’t bake on the lowest rack.',
+        'Make a foil disk about 1/4 inch thick to fit the pot bottom, plus one sheet of foil 3 inches up the sides. Preheat the pot with the foil in, and grease the foil before loading.',
+        'Want a darker (not burned) bottom? Flatten the foil to 1/8 inch.'], ['bottom']],
+      ['Pale crust', [
+        'Pale crust means not enough heat or not enough steam. Your oven may run low; check it with an oven thermometer.',
+        'Keep the lid on for the full 20 min, then bake longer uncovered. A thin strip of char on the ear means you went far enough.'], ['dark']]
+    ]},
+    { group: 'After the bake', items: [
+      ['Gummy crumb', [
+        'Cool the full 2 hours. Slicing hot bread makes it gummy.',
+        'Bake to 208°F internal.',
+        'Underproofed or overproofed loaves can also bake up dense and gummy in the center.'], ['risen']],
+      ['Crust goes soft after cooling', [
+        'Moisture from inside condenses on the crust in cool air. When it’s done, turn off the oven, crack the door a couple of inches, and let the loaf cool inside.'], ['crusty']],
+      ['Want it more sour', [
+        'Leave the shaped loaf in the fridge longer, even a few days. Past a point the yeast weakens and the rise suffers, so find your sweet spot.'], ['tips']]
+    ]}
+  ];
+  $('fixList').innerHTML = FIX.map(g => '<h2 class="sh">' + g.group + '</h2>' + g.items.map(f =>
+    '<div class="card"><h3>' + f[0] + '</h3><ol class="fx">' + f[1].map(x => '<li>' + x + '</li>').join('') + '</ol>' +
+    (f[2].length ? '<div class="src">Source: ' + f[2].map(k => '<a href="' + SRC[k][0] + '">' + SRC[k][1] + '</a>').join(' · ') + '</div>' : '') +
+    '</div>').join('')).join('') +
+    '<p class="footer" style="margin-top:20px">Adapted from King Arthur Baking’s blog and sourdough guides.</p>';
+
+  /* ---------- schedule ---------- */
+  const BAKE_MIN = 43, COOL_MIN = 120;
+  const pad = n => String(n).padStart(2, '0');
+  const toLocalInput = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  const defaultWhen = () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); return toLocalInput(d); };
+  const addMin = (d, m) => new Date(d.getTime() + m * 60000);
+  const fmtTime = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const fmtDay = d => d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  const isNight = d => { const h = d.getHours(); return h >= 23 || h < 6; };
+  const num = (id, fb) => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : fb; };
+
+  const ss = ls.get('sd-sched');
+  $('when').value = (ss && ss.when) || defaultWhen();
+  $('anchor').value = (ss && ss.anchor) || 'oven';
+  if (ss) { if (ss.peak) $('peak').value = ss.peak; if (ss.bulk) $('bulk').value = ss.bulk; if (ss.cold) $('cold').value = ss.cold; }
+
+  let lastSteps = [];
+  function buildSchedule() {
+    $('loafNote').textContent = loaves + (loaves === 1 ? ' loaf' : ' loaves') + ' (change on the Recipe tab)';
+    const picked = new Date($('when').value);
+    if (isNaN(picked)) { $('sched').innerHTML = ''; return; }
+    const peak = num('peak', 5), bulk = num('bulk', 4.5), cold = num('cold', 14);
+    const oven = $('anchor').value === 'slice' ? addMin(picked, -(BAKE_MIN + COOL_MIN)) : picked;
+    const fridge = addMin(oven, -cold * 60), shape = addMin(fridge, -15), preshape = addMin(shape, -30);
+    const bulkStart = addMin(preshape, -bulk * 60), salt = addMin(bulkStart, -6), starter = addMin(bulkStart, -10);
+    const autolyse = addMin(starter, -45), feed = addMin(starter, -peak * 60), out = addMin(oven, BAKE_MIN);
+    const multi = loaves > 1;
+    const steps = [
+      { t: feed, s: 'Feed starter', n: 'Should peak in about ' + peak + ' hrs, right when you mix.' },
+      { t: autolyse, s: 'Autolyse', n: 'Flours + water, speed 1 for 1 min. Rest 45 min.' },
+      { t: starter, s: 'Add starter', n: 'Check it has peaked. Speed 1 for 1 min, then speed 2 for 3 min.' },
+      { t: salt, s: 'Add salt + held-back water', n: 'Speed 2 for 3–5 min, then windowpane test.' },
+      { t: bulkStart, s: 'Bulk ferment starts', n: 'Into the oiled container. Mark the starting level.', key: true },
+      { t: addMin(bulkStart, 30), s: 'Coil fold 1', n: '' },
+      { t: addMin(bulkStart, 60), s: 'Coil fold 2', n: '' },
+      { t: addMin(bulkStart, 90), s: 'Coil fold 3', n: 'Then leave it alone.' },
+      { t: preshape, s: 'Preshape', n: 'Bulk done at 50–75% rise. Round it, rest 30 min.' },
+      { t: shape, s: 'Final shape', n: 'Tight boule or batard into the banneton.' },
+      { t: fridge, s: 'Into the fridge', n: 'Cold proof ' + cold + ' hrs at 36–40°F.', key: true },
+      { t: addMin(oven, -60), s: 'Preheat Dutch oven', n: '500°F, 60 min.' },
+      { t: oven, s: multi ? 'Loaf 1: poke test, score, load' : 'Poke test, score, load', n: 'Straight from the fridge. Lid on, drop to 475°F.', key: true },
+      { t: addMin(oven, 20), s: 'Lid off', n: 'Drop to 450°F. Bake to 208°F internal.' },
+      { t: out, s: multi ? 'Loaf 1 out' : 'Out of the oven', n: 'Onto a rack.' + (multi ? ' Pot back in at 500°F for 10 min.' : '') },
+      { t: addMin(out, COOL_MIN), s: multi ? 'Loaf 1 ready to slice' : 'Ready to slice', n: 'After a full 2-hr cool.', key: true, passive: true }
+    ];
+    for (let k = 2; k <= loaves; k++) {
+      const inK = addMin(oven, (k - 1) * 55), outK = addMin(inK, BAKE_MIN);
+      steps.push({ t: inK, s: 'Loaf ' + k + ': score and load', n: 'Straight from the fridge. Lid on 20 min at 475°F, then lid off at 450°F.' });
+      steps.push({ t: outK, s: 'Loaf ' + k + ' out', n: k < loaves ? 'Pot back in at 500°F for 10 min.' : 'Last one. Turn off the oven.' });
+    }
+    steps.sort((a, b) => a.t - b.t);
+    lastSteps = steps;
+    let prev = ''; const night = []; let html = '';
+    steps.forEach(st => {
+      const day = fmtDay(st.t);
+      if (day !== prev) { html += '<div class="dayhead">' + day + '</div>'; prev = day; }
+      const n = !st.passive && isNight(st.t);
+      if (n) night.push(st.s + ' (' + fmtTime(st.t) + ')');
+      html += '<div class="row' + (st.key ? ' key' : '') + (n ? ' night' : '') + '"><span class="time">' + fmtTime(st.t) + '</span><span>' + st.s + (st.n ? '<div class="note">' + st.n + '</div>' : '') + '</span></div>';
+    });
+    $('sched').innerHTML = html;
+    const w = $('warn');
+    if (night.length) { w.innerHTML = '<b>Heads up:</b> ' + night.join(', ') + (night.length === 1 ? ' lands' : ' land') + ' overnight. Try a different bake time or adjust the cold proof.'; w.style.display = 'block'; }
+    else w.style.display = 'none';
+    ls.set('sd-sched', { when: $('when').value, anchor: $('anchor').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
+  }
+  ['when', 'anchor', 'peak', 'bulk', 'cold'].forEach(id => { $(id).addEventListener('input', buildSchedule); $(id).addEventListener('change', buildSchedule); });
+  $('resetSched').addEventListener('click', () => { $('when').value = defaultWhen(); $('anchor').value = 'oven'; $('peak').value = 5; $('bulk').value = 4.5; $('cold').value = 14; buildSchedule(); });
+  $('copy').addEventListener('click', () => {
+    let prev = '';
+    const text = "Dad's Famous Sourdough Loaf: schedule\n" + lastSteps.map(st => { const d = fmtDay(st.t), h = d !== prev ? '\n' + d + '\n' : ''; prev = d; return h + fmtTime(st.t) + '  ' + st.s; }).join('\n');
+    const msg = m => { $('copyStatus').textContent = m; setTimeout(() => { $('copyStatus').textContent = ''; }, 2000); };
+    try { navigator.clipboard.writeText(text).then(() => msg('Copied'), () => msg('Copy blocked by the browser')); } catch (e) { msg('Copy blocked by the browser'); }
+  });
+  buildSchedule();
+  schedReady = true;
+
+  renderPhotos();
+})();
+</script>
+</body>
+</html>
