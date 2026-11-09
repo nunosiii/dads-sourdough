@@ -237,7 +237,7 @@ async function photoTest(browser) {
 
 function staticChecks() {
   const files = [];
-  (function walk(d) { for (const f of fs.readdirSync(d, { withFileTypes: true })) { if (f.name === 'node_modules') continue; const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.(html|css|js|md|txt|svg|webmanifest|json)$/.test(f.name)) files.push(p); } })(SITE);
+  (function walk(d) { for (const f of fs.readdirSync(d, { withFileTypes: true })) { if (f.name === 'node_modules' || f.name.startsWith('.')) continue; const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.(html|css|js|md|txt|svg|webmanifest|json)$/.test(f.name)) files.push(p); } })(SITE);
   const bad = files.filter(f => fs.readFileSync(f, 'utf8').indexOf(EM) !== -1);
   check('no U+2014 in any text file', bad.length === 0, bad.join(','));
   const css = fs.readFileSync(path.join(SITE, 'css/styles.css'), 'utf8');
