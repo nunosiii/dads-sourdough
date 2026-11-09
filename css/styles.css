@@ -264,3 +264,52 @@ ol.fx { margin: .4rem 0 0; padding-left: 1.5rem; } ol.fx li { margin-bottom: .4r
   .warn b { color: #000; }
   a { color: #000; }
 }
+
+/* Canvas look. WebGL flow-field backdrop, side rail nav with numbers, huge outlined scene titles with parallax,
+   wipe transition between sections, and a cursor ring (fine pointers only; the native cursor stays). */
+:root { --glass: linear-gradient(160deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .02)); --tint: #7ff0dc; --tint-text: #7ff0dc; --on-tint: #03120f; --lift: none; --blur: blur(18px) saturate(140%); }
+html.c-gl body { background: none; }
+#cGl { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
+main { position: relative; z-index: 1; }
+
+#cCursor { display: block; position: fixed; left: 0; top: 0; width: 30px; height: 30px; border: 1px solid #fff; border-radius: 50%; pointer-events: none; z-index: 90; mix-blend-mode: difference; transition: width .25s var(--ease), height .25s var(--ease), background-color .25s, opacity .2s; }
+#cCursor.hot { width: 54px; height: 54px; background: #fff; }
+
+#cWipe { display: block; position: fixed; inset: 0; z-index: 40; pointer-events: none; background: #04141a; border-bottom: 2px solid var(--tint); clip-path: inset(0 0 100% 0); }
+
+.bar .title { font-size: 12px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; opacity: .6; }
+
+/* big screens: numbered side rail */
+@media (min-width: 900px) {
+  nav.tabs {
+    left: clamp(1.2rem, 3vw, 3rem); top: 50%; bottom: auto; transform: translateY(-50%); width: auto; flex-direction: column; gap: .2rem; padding: 0;
+    background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; counter-reset: rail;
+  }
+  nav.tabs .thumb { display: none; }
+  nav.tabs a { flex: none; flex-direction: row; justify-content: flex-start; gap: .9rem; min-height: 40px; padding: 0 .4rem; border-radius: 0; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; counter-increment: rail; }
+  nav.tabs a svg { display: none; }
+  nav.tabs a::before { content: "0" counter(rail); font-size: 11px; opacity: .55; width: 1.6rem; }
+  nav.tabs a::after { content: ""; width: 0; height: 1px; background: var(--tint); transition: width .5s var(--ease); }
+  nav.tabs a[aria-current=page], nav.tabs:not(.has-thumb) a[aria-current=page] { background: none; color: var(--tint); }
+  nav.tabs a[aria-current=page]::after { width: 2.2rem; }
+  .long { display: inline; } .short { display: none; }
+  main { max-width: 70rem; padding-left: clamp(15rem, 18vw, 17rem); margin: 0 auto 0 0; padding-right: clamp(1.1rem, 4vw, 4rem); }
+}
+
+.largetitle {
+  font-size: clamp(2.4rem, 9vw, 6rem); font-weight: 200; letter-spacing: -.05em; line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; margin-top: 3rem;
+  color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, .9);
+  transform: translateY(calc(var(--sy, 0) * .2px)); opacity: calc(1 - var(--sy, 0) / 520);
+}
+.subtitle { font-size: 19px; max-width: 34rem; }
+h3.sh { font-size: 12px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; color: var(--tint); }
+section.view.fade { animation: cIn .9s .25s cubic-bezier(.2, .8, .2, 1) backwards; }
+@keyframes cIn { from { opacity: 0; transform: translateY(60px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.group, .card, .ph, .warn, #ing .row, .steps .step { border-radius: 18px; }
+.seg button[aria-pressed=true], .btn { background: var(--tint); color: #03120f; }
+.btn.plain { background: var(--fill); color: var(--ink); }
+.switch[aria-checked=true] { background: var(--tint); }
+
+@media print { #cGl, #cCursor, #cWipe { display: none; } html.c-gl body { background: #fff; } }
+@media (prefers-reduced-motion: reduce) { section.view.fade { animation: none; } .largetitle { transform: none; opacity: 1; } }
