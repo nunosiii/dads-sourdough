@@ -205,6 +205,8 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--tint); outl
 .sched .row.key .time { color: var(--tint); }
 .sched .row.night .time::after { content: " ☾"; color: var(--amber); }
 .sched .note, .note { color: var(--muted); font-size: 16px; }
+.fieldnote { font-size: 14px; margin: .35rem 0 0 .15rem; }
+.sched .span { color: var(--tint); font-size: 15px; font-variant-numeric: tabular-nums; margin-top: .1rem; }
 .actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin: .85rem 0 0 .2rem; }
 .status { color: var(--muted); font-size: 15px; }
 

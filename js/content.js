@@ -104,8 +104,17 @@ window.SOURDOUGH = {
   /* Which photos appear as thumbnails under which method step (0-based step index). */
   stepPhotos: { 1: ['starter-fed', 'starter-peak'], 2: ['windowpane'], 3: ['bulk-start', 'bulk-end'], 5: ['shaped'], 8: ['poke', 'scored'], 9: ['lid-off', 'finished'], 10: ['crumb'] },
 
-  /* Schedule math (minutes). */
-  schedule: { bakeMin: 43, coolMin: 120, extraLoafMin: 55 },
+  /* Schedule math. Minutes unless the name says otherwise.
+     Starter peak and bulk ferment are measured at baseTempF and scale with kitchen temp:
+     fermentation runs about twice as fast for every doubleEveryF degrees warmer (an estimate).
+     Hands-on steps from nightFrom:00 up to nightTo:00 get flagged. */
+  schedule: {
+    bakeMin: 43, coolMin: 120, extraLoafMin: 55,
+    baseTempF: 76, basePeakHrs: 5, baseBulkHrs: 4.5, doubleEveryF: 18,
+    defaultTempF: 72, minTempF: 65, maxTempF: 85,
+    coldMinHrs: 12, coldMaxHrs: 16, defaultColdHrs: 14,
+    nightFrom: 20, nightTo: 6
+  },
 
   /* Troubleshooting sources: key -> [url, label] */
   sources: (function () {
