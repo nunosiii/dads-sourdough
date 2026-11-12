@@ -2,7 +2,6 @@
   Smoke test. Plain node script, no test runner.
   Needs the `playwright` package (npm install, or a global install with NODE_PATH set).
   Run:  node tests/smoke.js
-  Optional: PROTOTYPE=/path/to/prototype/index.html to compare schedule output with the original prototype.
 */
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
@@ -13,7 +12,6 @@ const os = require('os');
 const http = require('http');
 
 const SITE = path.resolve(__dirname, '..');
-const PROTOTYPE = process.env.PROTOTYPE || path.join(__dirname, 'fixtures', 'prototype.html');
 const EM = String.fromCharCode(8212);
 let pass = 0, fail = 0;
 const failures = [];
@@ -109,24 +107,25 @@ async function runCombo(browser, base, vp, scheme) {
   await setSchedule(page, when, 'oven');
   const mine = await scheduleRows(page);
   check(tag + 'schedule has rows', mine.length > 18, String(mine.length));
-  if (vp.width === 1194 && scheme === 'light') {
-    const pp = await ctx.newPage();
-    await pp.goto('file://' + PROTOTYPE); await pp.evaluate(() => { location.hash = '#schedule'; });
-    for (const [n, anchor] of [[2, 'oven'], [1, 'oven'], [4, 'oven'], [2, 'slice']]) {
-      await pp.evaluate(k => document.querySelector('#scale button[data-n="' + k + '"]').click(), n); await setSchedule(pp, when, anchor);
-      await page.evaluate(k => document.querySelector('#scale button[data-n="' + k + '"]').click(), n);
-      await setSchedule(page, when, anchor);
-      const a = await scheduleRows(pp), b = await scheduleRows(page);
-      check(tag + 'schedule matches prototype (loaves ' + n + ', ' + anchor + ')', JSON.stringify(a) === JSON.stringify(b), JSON.stringify(a.filter((x, i) => x !== b[i]).slice(0, 3)) + ' vs ' + JSON.stringify(b.filter((x, i) => x !== a[i]).slice(0, 3)));
-    }
-    await pp.close();
-    await page.evaluate(() => document.querySelector('#scale button[data-n="2"]').click());
-    await setSchedule(page, when, 'oven');
+  const hasRow = (rows, re) => rows.some(r => re.test(r));
+  for (const [anchor, re] of [['feed', /^8:00\s?AM \| Feed starter/], ['autolyse', /^8:00\s?AM \| Autolyse/], ['peak', /^8:00\s?AM \| Add starter/], ['slice', /^8:00\s?AM \| Loaf 1 ready to eat/]]) {
+    await setSchedule(page, when, anchor);
+    const rows = await scheduleRows(page);
+    check(tag + 'anchor ' + anchor + ' pins 8:00 AM', hasRow(rows, re), rows.filter(r => /8:00/.test(r)).join(' / '));
+    if (anchor === 'feed') check(tag + 'feed anchor: oven 24h25m later', hasRow(rows, /^8:25\s?AM \| Loaf 1: poke test/), rows.filter(r => /poke/.test(r)).join(' / '));
   }
-  await setSchedule(page, when, 'start');
-  const fwd = await scheduleRows(page);
-  check(tag + 'starting time: first step is Feed starter at 8:00 AM', /^8:00\s?AM \| Feed starter/i.test(fwd[1] || ''), fwd[1]);
-  check(tag + 'starting time: oven 24h25m after feeding', fwd.some(r => /^8:25\s?AM \| Loaf 1: poke test/i.test(r)), fwd.filter(r => /poke/i.test(r)).join(' / '));
+  await setSchedule(page, when, 'oven');
+  check(tag + 'bulk ferment shows its span', await page.evaluate(() => [...document.querySelectorAll('#sched .row')].some(r => /Bulk ferment\s*Until .*4 hrs 30 min/.test(r.textContent))));
+  check(tag + 'no night warning for an 8 AM bake', /^WARN $/.test((await scheduleRows(page)).pop()));
+  await setSchedule(page, when.replace('T08:00', 'T06:00'), 'oven');
+  const warn = (await scheduleRows(page)).pop();
+  check(tag + '6 AM bake warns about 5 AM preheat with a fix', /Preheat Dutch oven \(\w+ 5:00\s?AM\).*between 8pm and 6am\. (A [\d.]+-hr cold proof|Move the end time)/.test(warn), warn);
+  const temps = await page.evaluate(() => {
+    const t = document.getElementById('temp'), out = {};
+    for (const v of ['68', '74', '72']) { t.value = v; t.dispatchEvent(new Event('input', { bubbles: true })); out[v] = [document.getElementById('peak').value, document.getElementById('bulk').value]; }
+    return out;
+  });
+  check(tag + 'kitchen temp sets starter and bulk hours', JSON.stringify(temps) === JSON.stringify({ 68: ['6.75', '6'], 74: ['5.5', '4.75'], 72: ['5.75', '5.25'] }), JSON.stringify(temps));
   await setSchedule(page, when, 'oven');
   const mine2 = await scheduleRows(page);
   check(tag + '2-loaf oven 8:00 AM row present', mine2.some(r => /^8:00\s?AM \| Poke test|^8:00\s?AM \| Loaf 1: poke test/i.test(r)), mine2.filter(r => /8:00/.test(r)).join(' / '));

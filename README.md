@@ -1,6 +1,6 @@
 # Dad's Famous Sourdough Loaf
 
-A small static website for Dad's sourdough recipe. It has four tabs: Recipe (scaling for 1, 2 or 4 loaves with a tap-to-check method), Checks and Photos (readiness checks and a photo guide), Schedule (works backward from when you want to bake), and Troubleshooting (19 fixes with King Arthur Baking sources). Plain HTML, CSS and vanilla JavaScript. No framework, no build step, nothing to install to run it.
+A small static website for Dad's sourdough recipe. It has four tabs: Recipe (scaling for 1, 2 or 4 loaves with a tap-to-check method), Checks and Photos (readiness checks and a photo guide), Schedule (plans the bake day from a start or end time you pick, adjusts for kitchen temperature, and flags hands-on steps between 8pm and 6am), and Troubleshooting (19 fixes with King Arthur Baking sources). Plain HTML, CSS and vanilla JavaScript. No framework, no build step, nothing to install to run it.
 
 ## Files
 
@@ -48,5 +48,6 @@ Then open http://localhost:8000. To run the smoke test: `npm install` then `npm 
 
 ## Notes
 
-- Loaf count always starts at 2 and is not saved. Checked steps are saved in the browser under `sd-steps` and the schedule inputs under `sd-sched`.
+- Loaf count always starts at 2 and is not saved. Checked steps are saved in the browser under `sd-steps` and the schedule inputs (including kitchen temp) under `sd-sched`.
+- Schedule terms (anchor, stage, hands-on step, night window) are defined in `GLOSSARY.md`. The temperature rule and the night window hours are in the `schedule` block of `js/content.js`.
 - Design: "Glass Ticket" (frosted glass over a deep teal and navy backdrop, amber accent). Dark only, so the page ignores the system light/dark setting. Colors, glass and spring easing are tokens at the top of `css/styles.css`.

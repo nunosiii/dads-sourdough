@@ -299,80 +299,136 @@
   }).join('') + '<p class="footer" style="margin-top:1.25rem">' + D.attribution + '</p>';
 
   /* ---------- schedule ---------- */
-  var BAKE_MIN = D.schedule.bakeMin, COOL_MIN = D.schedule.coolMin, EXTRA = D.schedule.extraLoafMin;
+  var S = D.schedule, BAKE_MIN = S.bakeMin, COOL_MIN = S.coolMin, EXTRA = S.extraLoafMin;
   var pad = function (n) { return String(n).padStart(2, '0'); };
   var toLocalInput = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
   var defaultWhen = function () { var d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); return toLocalInput(d); };
   var addMin = function (d, m) { return new Date(d.getTime() + m * 60000); };
   var fmtTime = function (d) { return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
   var fmtDay = function (d) { return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }); };
-  var isNight = function (d) { var h = d.getHours(); return h >= 23 || h < 6; };
+  var fmtWkTime = function (d) { return d.toLocaleDateString([], { weekday: 'short' }) + ' ' + fmtTime(d); };
+  var fmtLen = function (min) {
+    min = Math.round(min); var h = Math.floor(min / 60), m = min % 60;
+    return (h ? h + (h === 1 ? ' hr' : ' hrs') : '') + (h && m ? ' ' : '') + (m ? m + ' min' : '');
+  };
+  var isNight = function (d) { var h = d.getHours(); return h >= S.nightFrom || h < S.nightTo; };
   var num = function (id, fb) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : fb; };
+
+  /* Kitchen temp: about twice as fast for every S.doubleEveryF degrees warmer. Rounded to 15 min. */
+  var kitchenTemp = function () { return Math.min(S.maxTempF, Math.max(S.minTempF, num('temp', S.defaultTempF))); };
+  var suggestHrs = function (baseHrs, t) { return Math.round(baseHrs * Math.pow(2, (S.baseTempF - t) / S.doubleEveryF) * 4) / 4; };
+  function applyTemp() { var t = kitchenTemp(); $('peak').value = suggestHrs(S.basePeakHrs, t); $('bulk').value = suggestHrs(S.baseBulkHrs, t); }
+  function tempNotes() {
+    var t = kitchenTemp();
+    [['peak', S.basePeakHrs], ['bulk', S.baseBulkHrs]].forEach(function (f) {
+      var s = suggestHrs(f[1], t);
+      $(f[0] + 'Note').textContent = num(f[0], s) === s ? 'Estimate for ' + t + '°F' : t + '°F suggests ' + fmtLen(s * 60);
+    });
+  }
+
+  /* Which moment each "Plan from" choice pins. */
+  var ANCHORS = { feed: 'feed', autolyse: 'autolyse', peak: 'starter', oven: 'oven', slice: 'ready' };
+  var START_ANCHORS = { feed: 1, autolyse: 1, peak: 1 };
+  function times(oven, p) {
+    var fridge = addMin(oven, -p.cold * 60), shape = addMin(fridge, -15), preshape = addMin(shape, -30);
+    var bulkStart = addMin(preshape, -p.bulk * 60), starter = addMin(bulkStart, -10), out = addMin(oven, BAKE_MIN);
+    return { oven: oven, fridge: fridge, shape: shape, preshape: preshape, bulkStart: bulkStart, salt: addMin(bulkStart, -6), starter: starter,
+      autolyse: addMin(starter, -45), feed: addMin(starter, -p.peak * 60), out: out, ready: addMin(out, COOL_MIN) };
+  }
+  /* Steps with an `end` are stages: they show start, stop and length. `passive` steps are not hands-on. */
+  function plan(picked, anchor, p) {
+    var probe = times(picked, p), T = times(addMin(picked, (picked - probe[ANCHORS[anchor] || 'oven']) / 60000), p);
+    var multi = loaves > 1;
+    var steps = [
+      { t: T.feed, end: T.starter, s: 'Feed starter', n: 'Rises to its peak, right when you mix.' },
+      { t: T.autolyse, end: T.starter, s: 'Autolyse', n: 'Flours + water, speed 1 for 1 min, then rest.' },
+      { t: T.starter, s: 'Add starter', n: 'Check it has peaked. Speed 1 for 1 min, then speed 2 for 3 min.' },
+      { t: T.salt, s: 'Add salt + held-back water', n: 'Speed 2 for 3–5 min, then windowpane test.' },
+      { t: T.bulkStart, end: T.preshape, s: 'Bulk ferment', n: 'Into the oiled container. Mark the starting level. Done at 50–75% rise.', key: true },
+      { t: addMin(T.bulkStart, 30), s: 'Coil fold 1', n: '' },
+      { t: addMin(T.bulkStart, 60), s: 'Coil fold 2', n: '' },
+      { t: addMin(T.bulkStart, 90), s: 'Coil fold 3', n: 'Then leave it alone.' },
+      { t: T.preshape, end: T.shape, s: 'Preshape', n: 'Round it and let it rest.' },
+      { t: T.shape, s: 'Final shape', n: 'Tight boule or batard into the banneton.' },
+      { t: T.fridge, end: T.oven, s: 'Into the fridge', n: 'Cold proof at 36–40°F.', key: true },
+      { t: addMin(T.oven, -60), end: T.oven, s: 'Preheat Dutch oven', n: '500°F.' },
+      { t: T.oven, end: T.out, s: multi ? 'Loaf 1: poke test, score, load' : 'Poke test, score, load', n: 'Straight from the fridge. Lid on, drop to 475°F.', key: true },
+      { t: addMin(T.oven, 20), s: 'Lid off', n: 'Drop to 450°F. Bake to 208°F internal.' },
+      { t: T.out, end: T.ready, s: multi ? 'Loaf 1 out' : 'Out of the oven', n: 'Onto a rack to cool.' + (multi ? ' Pot back in at 500°F for 10 min.' : '') },
+      { t: T.ready, s: multi ? 'Loaf 1 ready to eat' : 'Ready to eat', n: 'After the full 2-hr cool.', key: true, passive: true }
+    ];
+    for (var k = 2; k <= loaves; k++) {
+      var inK = addMin(T.oven, (k - 1) * EXTRA), outK = addMin(inK, BAKE_MIN);
+      steps.push({ t: inK, end: outK, s: 'Loaf ' + k + ': score and load', n: 'Straight from the fridge. Lid on 20 min at 475°F, then lid off at 450°F.' });
+      steps.push({ t: outK, s: 'Loaf ' + k + ' out', n: k < loaves ? 'Pot back in at 500°F for 10 min.' : 'Last one. Turn off the oven.' });
+    }
+    return steps.sort(function (a, b) { return a.t - b.t; });
+  }
+  var nightSteps = function (steps) { return steps.filter(function (st) { return !st.passive && isNight(st.t); }); };
+
+  /* A fix for night steps: a cold proof in range first, else the smallest shift of the picked time. */
+  function nightFix(picked, anchor, p) {
+    var colds = [];
+    for (var c = S.coldMinHrs; c <= S.coldMaxHrs; c += 0.5) if (c !== p.cold) colds.push(c);
+    colds.sort(function (a, b) { return Math.abs(a - p.cold) - Math.abs(b - p.cold); });
+    for (var i = 0; i < colds.length; i++) {
+      if (!nightSteps(plan(picked, anchor, { peak: p.peak, bulk: p.bulk, cold: colds[i] })).length) return 'A ' + colds[i] + '-hr cold proof instead of ' + p.cold + ' clears it.';
+    }
+    var what = START_ANCHORS[anchor] ? 'start' : 'end time';
+    for (var m = 15; m <= 24 * 60; m += 15) {
+      for (var sign = 1; sign >= -1; sign -= 2) {
+        var d = addMin(picked, sign * m);
+        if (!nightSteps(plan(d, anchor, p)).length) return 'Move the ' + what + ' ' + fmtLen(m) + (sign > 0 ? ' later' : ' earlier') + ' (' + fmtWkTime(d) + ') to clear it.';
+      }
+    }
+    return 'At these hours the hands-on steps can’t all fit between 6am and 8pm. A warmer spot for the starter and dough shortens the day.';
+  }
 
   var ss = ls.get('sd-sched');
   $('when').value = (ss && ss.when) || defaultWhen();
-  $('anchor').value = (ss && ss.anchor) || 'oven';
-  if (ss) { if (ss.peak) $('peak').value = ss.peak; if (ss.bulk) $('bulk').value = ss.bulk; if (ss.cold) $('cold').value = ss.cold; }
+  $('anchor').value = ss && ANCHORS[ss.anchor] ? ss.anchor : 'oven';
+  if (ss && ss.cold) $('cold').value = ss.cold;
+  if (ss && ss.temp) { $('temp').value = ss.temp; if (ss.peak) $('peak').value = ss.peak; if (ss.bulk) $('bulk').value = ss.bulk; }
+  else { $('temp').value = S.defaultTempF; applyTemp(); }
 
   var lastSteps = [];
   function buildSchedule() {
     $('loafNote').textContent = loaves + (loaves === 1 ? ' loaf' : ' loaves') + ' (change on the Recipe tab)';
-    var picked = new Date($('when').value);
-    if (isNaN(picked)) { $('sched').innerHTML = ''; return; }
-    var peak = num('peak', 5), bulk = num('bulk', 4.5), cold = num('cold', 14);
-    var anchor = $('anchor').value;
-    /* Feed to oven: starter peak, 10 min to bulk, bulk, 45 min preshape + shape, cold proof. */
-    var feedToOven = (peak + bulk + cold) * 60 + 55;
-    var oven = anchor === 'slice' ? addMin(picked, -(BAKE_MIN + COOL_MIN)) : anchor === 'start' ? addMin(picked, feedToOven) : picked;
-    var fridge = addMin(oven, -cold * 60), shape = addMin(fridge, -15), preshape = addMin(shape, -30);
-    var bulkStart = addMin(preshape, -bulk * 60), salt = addMin(bulkStart, -6), starter = addMin(bulkStart, -10);
-    var autolyse = addMin(starter, -45), feed = addMin(starter, -peak * 60), out = addMin(oven, BAKE_MIN);
-    var multi = loaves > 1;
-    var steps = [
-      { t: feed, s: 'Feed starter', n: 'Should peak in about ' + peak + ' hrs, right when you mix.' },
-      { t: autolyse, s: 'Autolyse', n: 'Flours + water, speed 1 for 1 min. Rest 45 min.' },
-      { t: starter, s: 'Add starter', n: 'Check it has peaked. Speed 1 for 1 min, then speed 2 for 3 min.' },
-      { t: salt, s: 'Add salt + held-back water', n: 'Speed 2 for 3–5 min, then windowpane test.' },
-      { t: bulkStart, s: 'Bulk ferment starts', n: 'Into the oiled container. Mark the starting level.', key: true },
-      { t: addMin(bulkStart, 30), s: 'Coil fold 1', n: '' },
-      { t: addMin(bulkStart, 60), s: 'Coil fold 2', n: '' },
-      { t: addMin(bulkStart, 90), s: 'Coil fold 3', n: 'Then leave it alone.' },
-      { t: preshape, s: 'Preshape', n: 'Bulk done at 50–75% rise. Round it, rest 30 min.' },
-      { t: shape, s: 'Final shape', n: 'Tight boule or batard into the banneton.' },
-      { t: fridge, s: 'Into the fridge', n: 'Cold proof ' + cold + ' hrs at 36–40°F.', key: true },
-      { t: addMin(oven, -60), s: 'Preheat Dutch oven', n: '500°F, 60 min.' },
-      { t: oven, s: multi ? 'Loaf 1: poke test, score, load' : 'Poke test, score, load', n: 'Straight from the fridge. Lid on, drop to 475°F.', key: true },
-      { t: addMin(oven, 20), s: 'Lid off', n: 'Drop to 450°F. Bake to 208°F internal.' },
-      { t: out, s: multi ? 'Loaf 1 out' : 'Out of the oven', n: 'Onto a rack.' + (multi ? ' Pot back in at 500°F for 10 min.' : '') },
-      { t: addMin(out, COOL_MIN), s: multi ? 'Loaf 1 ready to slice' : 'Ready to slice', n: 'After a full 2-hr cool.', key: true, passive: true }
-    ];
-    for (var k = 2; k <= loaves; k++) {
-      var inK = addMin(oven, (k - 1) * EXTRA), outK = addMin(inK, BAKE_MIN);
-      steps.push({ t: inK, s: 'Loaf ' + k + ': score and load', n: 'Straight from the fridge. Lid on 20 min at 475°F, then lid off at 450°F.' });
-      steps.push({ t: outK, s: 'Loaf ' + k + ' out', n: k < loaves ? 'Pot back in at 500°F for 10 min.' : 'Last one. Turn off the oven.' });
-    }
-    steps.sort(function (a, b) { return a.t - b.t; });
+    tempNotes();
+    var picked = new Date($('when').value), anchor = $('anchor').value;
+    if (isNaN(picked)) { $('sched').innerHTML = ''; $('warn').style.display = 'none'; return; }
+    var p = { peak: num('peak', S.basePeakHrs), bulk: num('bulk', S.baseBulkHrs), cold: num('cold', S.defaultColdHrs) };
+    var steps = plan(picked, anchor, p);
     lastSteps = steps;
-    var prev = '', night = [], html = '';
+    var prev = '', html = '';
     steps.forEach(function (st) {
       var day = fmtDay(st.t);
       if (day !== prev) { html += '<div class="dayhead">' + day + '</div>'; prev = day; }
       var n = !st.passive && isNight(st.t);
-      if (n) night.push(st.s + ' (' + fmtTime(st.t) + ')');
-      html += '<div class="row' + (st.key ? ' key' : '') + (n ? ' night' : '') + '"><span class="time">' + fmtTime(st.t) + '</span><span>' + st.s + (st.n ? '<div class="note">' + st.n + '</div>' : '') + '</span></div>';
+      var span = st.end ? '<div class="span">Until ' + (fmtDay(st.end) === day ? fmtTime(st.end) : fmtWkTime(st.end)) + ' · ' + fmtLen((st.end - st.t) / 60000) + '</div>' : '';
+      html += '<div class="row' + (st.key ? ' key' : '') + (n ? ' night' : '') + '"><span class="time">' + fmtTime(st.t) + '</span><span>' + st.s + span + (st.n ? '<div class="note">' + st.n + '</div>' : '') + '</span></div>';
     });
     $('sched').innerHTML = html;
-    var w = $('warn');
-    if (night.length) { w.innerHTML = '<b>Heads up:</b> ' + night.join(', ') + (night.length === 1 ? ' lands' : ' land') + ' overnight. Try a different time or adjust the cold proof.'; w.style.display = 'block'; }
-    else w.style.display = 'none';
-    ls.set('sd-sched', { when: $('when').value, anchor: $('anchor').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
+    var night = nightSteps(steps), w = $('warn');
+    if (night.length) {
+      w.innerHTML = '<b>Heads up:</b> ' + night.map(function (st) { return st.s + ' (' + fmtWkTime(st.t) + ')'; }).join(', ') +
+        (night.length === 1 ? ' lands' : ' land') + ' between 8pm and 6am. ' + nightFix(picked, anchor, p);
+      w.style.display = 'block';
+    } else { w.style.display = 'none'; w.textContent = ''; }
+    ls.set('sd-sched', { when: $('when').value, anchor: anchor, temp: $('temp').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
   }
+  $('temp').addEventListener('input', function () { applyTemp(); buildSchedule(); });
   ['when', 'anchor', 'peak', 'bulk', 'cold'].forEach(function (id) { $(id).addEventListener('input', buildSchedule); $(id).addEventListener('change', buildSchedule); });
-  $('resetSched').addEventListener('click', function () { $('when').value = defaultWhen(); $('anchor').value = 'oven'; $('peak').value = 5; $('bulk').value = 4.5; $('cold').value = 14; buildSchedule(); });
+  $('resetSched').addEventListener('click', function () {
+    $('when').value = defaultWhen(); $('anchor').value = 'oven'; $('temp').value = S.defaultTempF; $('cold').value = S.defaultColdHrs; applyTemp(); buildSchedule();
+  });
   var copyTimer = null;
   $('copy').addEventListener('click', function () {
     var prev = '';
-    var text = "Dad's Famous Sourdough Loaf: schedule\n" + lastSteps.map(function (st) { var d = fmtDay(st.t), h = d !== prev ? '\n' + d + '\n' : ''; prev = d; return h + fmtTime(st.t) + '  ' + st.s; }).join('\n');
+    var text = "Dad's Famous Sourdough Loaf: schedule\n" + lastSteps.map(function (st) {
+      var d = fmtDay(st.t), h = d !== prev ? '\n' + d + '\n' : ''; prev = d;
+      return h + fmtTime(st.t) + '  ' + st.s + (st.end ? ' (until ' + fmtTime(st.end) + ')' : '');
+    }).join('\n');
     var msg = function (m) { $('copyStatus').textContent = m; clearTimeout(copyTimer); copyTimer = setTimeout(function () { $('copyStatus').textContent = ''; }, 2000); };
     try { navigator.clipboard.writeText(text).then(function () { msg('Copied'); }, function () { msg('Copy blocked by the browser'); }); } catch (e) { msg('Copy blocked by the browser'); }
   });
