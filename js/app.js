@@ -320,7 +320,10 @@
     var picked = new Date($('when').value);
     if (isNaN(picked)) { $('sched').innerHTML = ''; return; }
     var peak = num('peak', 5), bulk = num('bulk', 4.5), cold = num('cold', 14);
-    var oven = $('anchor').value === 'slice' ? addMin(picked, -(BAKE_MIN + COOL_MIN)) : picked;
+    var anchor = $('anchor').value;
+    /* Feed to oven: starter peak, 10 min to bulk, bulk, 45 min preshape + shape, cold proof. */
+    var feedToOven = (peak + bulk + cold) * 60 + 55;
+    var oven = anchor === 'slice' ? addMin(picked, -(BAKE_MIN + COOL_MIN)) : anchor === 'start' ? addMin(picked, feedToOven) : picked;
     var fridge = addMin(oven, -cold * 60), shape = addMin(fridge, -15), preshape = addMin(shape, -30);
     var bulkStart = addMin(preshape, -bulk * 60), salt = addMin(bulkStart, -6), starter = addMin(bulkStart, -10);
     var autolyse = addMin(starter, -45), feed = addMin(starter, -peak * 60), out = addMin(oven, BAKE_MIN);
@@ -360,7 +363,7 @@
     });
     $('sched').innerHTML = html;
     var w = $('warn');
-    if (night.length) { w.innerHTML = '<b>Heads up:</b> ' + night.join(', ') + (night.length === 1 ? ' lands' : ' land') + ' overnight. Try a different bake time or adjust the cold proof.'; w.style.display = 'block'; }
+    if (night.length) { w.innerHTML = '<b>Heads up:</b> ' + night.join(', ') + (night.length === 1 ? ' lands' : ' land') + ' overnight. Try a different time or adjust the cold proof.'; w.style.display = 'block'; }
     else w.style.display = 'none';
     ls.set('sd-sched', { when: $('when').value, anchor: $('anchor').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
   }

@@ -84,9 +84,9 @@
 <!-- SCHEDULE -->
 <section class="view" id="v-schedule" aria-labelledby="t-schedule">
   <h2 class="largetitle" id="t-schedule">Schedule</h2>
-  <p class="subtitle">Pick when you want to bake. It works backward from there.</p>
+  <p class="subtitle">Pick when you want to start or when you want to bake. It works out the rest.</p>
   <div class="card form">
-    <div><label class="f" for="anchor">Work backward from</label><select id="anchor"><option value="oven">First loaf goes in the oven</option><option value="slice">First loaf ready to slice</option></select></div>
+    <div><label class="f" for="anchor">Plan from</label><select id="anchor"><option value="start">Starting time (feed the starter)</option><option value="oven">First loaf goes in the oven</option><option value="slice">First loaf ready to slice</option></select></div>
     <div><label class="f" for="when">Date and time</label><input type="datetime-local" id="when"></div>
     <div><label class="f" for="peak">Starter peak <span class="hint">(hrs after feeding)</span></label><input type="number" inputmode="decimal" id="peak" min="2" max="14" step="0.5" value="5"></div>
     <div><label class="f" for="bulk">Bulk ferment <span class="hint">(hrs)</span></label><input type="number" inputmode="decimal" id="bulk" min="2" max="12" step="0.5" value="4.5"></div>
@@ -96,7 +96,7 @@
   <div class="warn" id="warn" role="status"></div>
   <div class="group sched" id="sched"></div>
   <div class="actions"><button type="button" class="btn" id="copy">Copy schedule</button><button type="button" class="btn plain" id="resetSched">Reset defaults</button><span class="status" id="copyStatus" role="status" aria-live="polite"></span></div>
-  <p class="footer">Steps marked ☾ land between 11pm and 6am. Shift the bake time, or adjust cold proof anywhere in 12–16 hrs.</p>
+  <p class="footer">Steps marked ☾ land between 11pm and 6am. Shift the start or bake time, or adjust cold proof anywhere in 12–16 hrs.</p>
 </section>
 
 <!-- FIXES -->

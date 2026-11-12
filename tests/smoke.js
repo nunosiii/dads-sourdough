@@ -123,6 +123,11 @@ async function runCombo(browser, base, vp, scheme) {
     await page.evaluate(() => document.querySelector('#scale button[data-n="2"]').click());
     await setSchedule(page, when, 'oven');
   }
+  await setSchedule(page, when, 'start');
+  const fwd = await scheduleRows(page);
+  check(tag + 'starting time: first step is Feed starter at 8:00 AM', /^8:00\s?AM \| Feed starter/i.test(fwd[1] || ''), fwd[1]);
+  check(tag + 'starting time: oven 24h25m after feeding', fwd.some(r => /^8:25\s?AM \| Loaf 1: poke test/i.test(r)), fwd.filter(r => /poke/i.test(r)).join(' / '));
+  await setSchedule(page, when, 'oven');
   const mine2 = await scheduleRows(page);
   check(tag + '2-loaf oven 8:00 AM row present', mine2.some(r => /^8:00\s?AM \| Poke test|^8:00\s?AM \| Loaf 1: poke test/i.test(r)), mine2.filter(r => /8:00/.test(r)).join(' / '));
   check(tag + 'schedule persisted', (await page.evaluate(() => JSON.parse(localStorage.getItem('sd-sched')).when)) === when);
