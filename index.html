@@ -52,6 +52,10 @@
   <div class="group" id="ing"></div>
   <p class="footer"><b>Whole wheat is optional.</b> To skip it, use all bread flour (500g per loaf) and hold back an extra 5–10g water at first. Expect a milder flavor, a slightly slower bulk, and possibly a touch more height.</p>
 
+  <h3 class="sh">Feed the starter</h3>
+  <div class="group" id="feed"></div>
+  <p class="footer">Pick one. Each makes a little more than the dough needs; the leftover is your starter for next time. Hours are for about 76°F and run longer in a cool kitchen.</p>
+
   <h3 class="sh sh-split"><span>Method · tap a step to check it off</span><span class="count" id="stepCount" aria-live="polite"></span></h3>
   <div class="group steps" id="steps"></div>
   <div class="actions noprint"><button type="button" class="btn plain small" id="clearSteps">Clear checks</button><span class="status" id="clearStatus" aria-live="polite"></span></div>
@@ -91,16 +95,17 @@
       <optgroup label="End"><option value="oven">First loaf in the oven</option><option value="slice">Ready to eat (after the 2-hr cool)</option></optgroup>
     </select></div>
     <div><label class="f" for="when">Date and time</label><input type="datetime-local" id="when"></div>
+    <div><span class="f" id="feedLabel">Starter feed</span><div class="seg segc" id="feedPick" role="group" aria-labelledby="feedLabel"><button type="button" data-f="same">Same day</button><button type="button" data-f="night">Night before</button></div><div class="note fieldnote" id="feedNote"></div></div>
     <div><label class="f" for="temp">Kitchen temp <span class="hint">(°F)</span></label><input type="number" inputmode="numeric" id="temp" min="65" max="85" step="1" value="72"><div class="note fieldnote">Summer about 74°F, winter 68 to 70°F.</div></div>
     <div><label class="f" for="peak">Starter peak <span class="hint">(hrs after feeding)</span></label><input type="number" inputmode="decimal" id="peak" min="2" max="14" step="0.25" value="5.75"><div class="note fieldnote" id="peakNote"></div></div>
     <div><label class="f" for="bulk">Bulk ferment <span class="hint">(hrs)</span></label><input type="number" inputmode="decimal" id="bulk" min="2" max="12" step="0.25" value="5.25"><div class="note fieldnote" id="bulkNote"></div></div>
-    <div><label class="f" for="cold">Cold proof <span class="hint">(hrs, 12–16)</span></label><input type="number" inputmode="decimal" id="cold" min="8" max="48" step="1" value="14"></div>
+    <div><label class="f" for="cold">Cold proof <span class="hint">(hrs, 12–20)</span></label><input type="number" inputmode="decimal" id="cold" min="8" max="48" step="1" value="14"></div>
     <div><span class="f">Loaves</span><div class="note" id="loafNote"></div></div>
   </div>
   <div class="warn" id="warn" role="status"></div>
   <div class="group sched" id="sched"></div>
   <div class="actions"><button type="button" class="btn" id="copy">Copy schedule</button><button type="button" class="btn plain" id="resetSched">Reset defaults</button><span class="status" id="copyStatus" role="status" aria-live="polite"></span></div>
-  <p class="footer">Hands-on steps marked ☾ land between 8pm and 6am. Starter and bulk times from the kitchen temp are estimates: trust the dough.</p>
+  <p class="footer">Hands-on steps marked ☾ land between 8pm and 6am. Feeding the starter is never marked: it takes two minutes. Starter and bulk times from the kitchen temp are estimates: trust the dough.</p>
 </section>
 
 <!-- FIXES -->

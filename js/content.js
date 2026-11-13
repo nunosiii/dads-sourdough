@@ -18,6 +18,22 @@ window.SOURDOUGH = {
   ],
 
   /*
+    Starter feeds. ratio = starter : flour : water by weight. basePeakHrs = hours to peak at
+    schedule.baseTempF (an estimate: correct it after timing your own starter). Amounts come
+    from feedFor and make about 10% more than the dough needs; the leftover is next time’s starter.
+  */
+  feeds: {
+    same: { name: 'Same-day feed', ratio: '1:1:1', basePeakHrs: 5, peaks: 'peaks in 4–6 hrs' },
+    night: { name: 'Overnight feed', ratio: '1:5:5', basePeakHrs: 8.5, peaks: 'peaks in 9–12 hrs' }
+  },
+  /* [starter, flour, water] in grams for a feed key and loaf count. */
+  feedFor: function (key, n) {
+    if (key === 'night') return [10 * n, 50 * n, 50 * n];
+    var g = Math.ceil(37.5 * n / 5) * 5;
+    return [g, g, g];
+  },
+
+  /*
     Method steps: [name, duration, text]. Called with the loaf count (1, 2 or 4).
     For 4 loaves the amounts shown are per batch (two batches of 2).
   */
@@ -31,7 +47,7 @@ window.SOURDOUGH = {
       ['Bulk ferment', '4–5 hrs at 76°F', 'Move to a lightly oiled straight-sided container and mark the starting level. 3 sets of coil folds, 30 min apart, in the first 90 min. Done at 50–75% rise. Do not let it double.'],
       ['Preshape', '30 min rest', (n > 1 ? 'Divide into ' + n + ' equal pieces (weigh them). ' : '') + 'Unfloured counter, round with a bench scraper, rest uncovered.'],
       ['Final shape', '', 'Flour the top, flip, shape a tight boule or batard by dragging it toward you to build tension. Into a rice-floured banneton, seam side up.' + (n > 1 ? ' One banneton per loaf.' : '')],
-      ['Cold retard', '12–16 hrs', 'Cover and refrigerate at 36–40°F. This is the blister step.'],
+      ['Cold retard', '12–20 hrs', 'Cover and refrigerate at 36–40°F. This is the blister step. After an overnight feed, plan 17–20 hrs so the bake lands the next morning.'],
       ['Preheat', '60 min', 'Lidded Dutch oven in the oven at 500°F.'],
       ['Score and bake covered', '20 min', 'Do the poke test. Straight from the fridge onto parchment. One decisive slash at 30–45°, about 1/2 inch deep. Load, cover, drop to 475°F.' + (n > 1 ? ' Other loaves wait in the fridge.' : '')],
       ['Bake uncovered', '20–25 min', 'Lid off, drop to 450°F. Bake to deep mahogany and 208°F internal.' + (n > 1 ? ' Then put the empty pot back at 500°F for 10 min and repeat steps 9–10 for each remaining loaf (about 55 min per loaf).' : '')],
@@ -57,7 +73,7 @@ window.SOURDOUGH = {
   ],
 
   beforeEveryBake: [
-    'Starter doubles within 4–6 hrs of feeding',
+    'Starter doubles within 4–6 hrs of a same-day feed (1:1:1) at about 76°F',
     'Oven thermometer checked',
     'Container has a tape mark at the starting level',
     'Probe thermometer ready for dough and loaf temps'
@@ -68,16 +84,18 @@ window.SOURDOUGH = {
     { when: 'Before step 2 · Starter', title: 'Use it at its peak',
       ok: '<b>Ready:</b> doubled or more since feeding (rubber band on the jar), domed top just starting to flatten, bubbly throughout, smells tangy and yeasty.',
       no: '<b>Not yet:</b> not doubled, so wait. <b>Too late:</b> collapsed with streaks down the jar, or smells like nail polish. Feed again and wait for the next peak.',
-      note: 'Float test (optional): a spoonful that floats is ready. Whole wheat starters can sink even when ready, so trust the doubling first.' },
+      note: 'Overnight feed: you will often meet it just past the peak. A dome starting to flatten is still ready. If it has not doubled yet, move it somewhere warm and wait while the autolyse rests.<br>Float test (optional): a spoonful that floats is ready. Whole wheat starters can sink even when ready, so trust the doubling first.' },
     { when: 'End of step 3 · Windowpane test', title: 'Gluten developed enough',
       ok: '<b>Ready:</b> a golf-ball piece stretches slowly into a thin, translucent sheet before tearing.',
       no: '<b>Tears fast:</b> mix 1–2 more minutes on speed 2. A partial windowpane is fine at this hydration; the folds finish the job.' },
     { when: 'End of step 4 · Bulk ferment', title: 'Stop at 50–75%, not doubled',
       ok: '<b>Ready:</b> 50–75% rise on the tape mark, domed edges, bubbles on top and sides, jiggles when you shake the container.',
-      no: '<b>Not yet:</b> check every 30 min. <b>Doubled or sloppy:</b> shape now and expect less height.' },
+      no: '<b>Not yet:</b> check every 30 min. <b>Doubled or sloppy:</b> shape now and expect less height.',
+      note: 'Warm dough (78°F or more) keeps rising for a few hours in the fridge, so stop nearer 50%. In a cool kitchen, go toward 75%.' },
     { when: 'After cold proof · Poke test', title: 'Proofed and ready to bake',
       ok: '<b>Ready:</b> a floured finger poked 1/2 inch springs back slowly and leaves a small dent.',
-      no: '<b>Springs back fast:</b> more fridge time, or 30–60 min at room temp. <b>No spring back:</b> bake now and score shallow.' },
+      no: '<b>Springs back fast:</b> more fridge time, or 30–60 min at room temp. <b>No spring back:</b> bake now and score shallow.',
+      note: 'Cold dough is stiff and springs back slowly either way, so this test is less reliable straight from the fridge. Use it as a tiebreaker after the bulk check.' },
     { when: 'End of step 10 · Done baking', title: 'Fully baked',
       ok: '<b>Ready:</b> 208°F internal, deep mahogany crust, hollow thump on the bottom.',
       no: '<b>Not yet:</b> 5 more minutes uncovered, then check again.' }
@@ -105,14 +123,14 @@ window.SOURDOUGH = {
   stepPhotos: { 1: ['starter-fed', 'starter-peak'], 2: ['windowpane'], 3: ['bulk-start', 'bulk-end'], 5: ['shaped'], 8: ['poke', 'scored'], 9: ['lid-off', 'finished'], 10: ['crumb'] },
 
   /* Schedule math. Minutes unless the name says otherwise.
-     Starter peak and bulk ferment are measured at baseTempF and scale with kitchen temp:
+     Starter peak (per feed, see feeds above) and bulk ferment are measured at baseTempF and scale with kitchen temp:
      fermentation runs about twice as fast for every doubleEveryF degrees warmer (an estimate).
      Hands-on steps from nightFrom:00 up to nightTo:00 get flagged. */
   schedule: {
     bakeMin: 43, coolMin: 120, extraLoafMin: 55,
-    baseTempF: 76, basePeakHrs: 5, baseBulkHrs: 4.5, doubleEveryF: 18,
+    baseTempF: 76, baseBulkHrs: 4.5, doubleEveryF: 18,
     defaultTempF: 72, minTempF: 65, maxTempF: 85,
-    coldMinHrs: 12, coldMaxHrs: 16, defaultColdHrs: 14,
+    coldMinHrs: 12, coldMaxHrs: 20, defaultColdHrs: 14,
     nightFrom: 20, nightTo: 6
   },
 
@@ -142,7 +160,7 @@ window.SOURDOUGH = {
   fixes: [
     { group: 'Starter', items: [
       ['Starter isn’t doubling', [
-        'At 75°F or warmer, a healthy starter doubles 6–8 hrs after feeding. Below 68°F it can take much longer.',
+        'King Arthur’s yardstick: at 75°F or warmer, a healthy starter doubles within 6–8 hrs of feeding. A lively one on a same-day feed (1:1:1) gets there in 4–6 hrs. An overnight feed (1:5:5) is meant to take 9–12. Below 68°F it can take much longer.',
         'Move it somewhere warm (top of the fridge works) and feed with 80–90°F water.',
         'Give it a snack: swap 10–20% of the feeding flour for rye or whole wheat to speed it up.'], ['notRising']],
       ['Lots of small bubbles, but no rise', [
@@ -156,7 +174,7 @@ window.SOURDOUGH = {
         'Feed with less starter: e.g. 20g starter + 30g water + 50g flour instead of equal parts.'], ['tooActive', 'faq']],
       ['Coming out of the fridge for a bake', [
         'About 2 days before baking, take it out and feed it. Then feed twice a day, about 12 hrs apart.',
-        'Make the last feeding 6–12 hrs before you mix the dough.'], ['tipsPdf']],
+        'Make the last feeding 6–12 hrs before you mix the dough: a same-day feed that morning or an overnight feed the evening before (amounts on the Recipe tab).'], ['tipsPdf']],
       ['Gray or dark liquid on top', [
         'That’s “hooch” (alcohol) from a hungry starter. Normal. Stir it in or pour it off, then feed every 12 hrs until it doubles again.',
         'Toss it and start over only if you see mold, a pink or orange tint/streak, or it smells rotten.'], ['notRising', 'create']]

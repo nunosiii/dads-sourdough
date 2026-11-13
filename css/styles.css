@@ -123,6 +123,7 @@ h3.sh-split .count { color: var(--tint); font-size: 15px; font-weight: 500; font
 
 /* chips (loaf count) */
 .seg { display: inline-flex; gap: 8px; margin: 0 0 .9rem; }
+.form .seg { margin: 0; }
 .seg button { font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); background: var(--fill); border: var(--edge); border-radius: 999px; padding: .55rem 1.2rem; min-height: 40px; min-width: 44px; cursor: pointer; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .seg button[aria-pressed=true] { background: rgba(255, 255, 255, .92); color: #0b1a24; border-color: transparent; }
 

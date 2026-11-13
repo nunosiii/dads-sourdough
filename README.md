@@ -1,6 +1,6 @@
 # Dad's Famous Sourdough Loaf
 
-A small static website for Dad's sourdough recipe. It has four tabs: Recipe (scaling for 1, 2 or 4 loaves with a tap-to-check method), Checks and Photos (readiness checks and a photo guide), Schedule (plans the bake day from a start or end time you pick, adjusts for kitchen temperature, and flags hands-on steps between 8pm and 6am), and Troubleshooting (19 fixes with King Arthur Baking sources). Plain HTML, CSS and vanilla JavaScript. No framework, no build step, nothing to install to run it.
+A small static website for Dad's sourdough recipe. It has four tabs: Recipe (scaling for 1, 2 or 4 loaves with a tap-to-check method), Checks and Photos (readiness checks and a photo guide), Schedule (plans the bake day from a start or end time you pick, adjusts for kitchen temperature, can feed the starter the night before (1:5:5) so you mix when you wake up, and flags hands-on steps between 8pm and 6am), and Troubleshooting (19 fixes with King Arthur Baking sources). Plain HTML, CSS and vanilla JavaScript. No framework, no build step, nothing to install to run it.
 
 ## Files
 
