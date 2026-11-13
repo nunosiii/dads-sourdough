@@ -273,10 +273,20 @@
     document.querySelectorAll('#scale button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)); });
     placeScale(animate);
     $('bigBatch').style.display = n === 4 ? 'block' : 'none';
+    renderFeed();
     renderSteps();
     if (schedReady) buildSchedule();
   }
   document.querySelectorAll('#scale button').forEach(function (b) { b.addEventListener('click', function () { renderIng(Number(b.dataset.n), true); }); });
+
+  /* Feed amounts as text, e.g. "20g starter + 100g flour + 100g water". */
+  var feedText = function (key) { var a = D.feedFor(key, loaves); return a[0] + 'g starter + ' + a[1] + 'g flour + ' + a[2] + 'g water'; };
+  function renderFeed() {
+    $('feed').innerHTML = Object.keys(D.feeds).map(function (k) {
+      var f = D.feeds[k];
+      return '<div class="row"><span class="label">' + f.name + ' (' + f.ratio + ')<small>' + feedText(k) + '</small></span><span class="val strong">' + f.peaks + '</span></div>';
+    }).join('');
+  }
 
   $('formula').innerHTML = D.formula.map(function (r) {
     return '<div class="row"><span class="label">' + r[0] + '<small>' + r[1] + '</small></span><span class="val strong">' + r[2] + '</span></div>';
@@ -317,10 +327,14 @@
   /* Kitchen temp: about twice as fast for every S.doubleEveryF degrees warmer. Rounded to 15 min. */
   var kitchenTemp = function () { return Math.min(S.maxTempF, Math.max(S.minTempF, num('temp', S.defaultTempF))); };
   var suggestHrs = function (baseHrs, t) { return Math.round(baseHrs * Math.pow(2, (S.baseTempF - t) / S.doubleEveryF) * 4) / 4; };
-  function applyTemp() { var t = kitchenTemp(); $('peak').value = suggestHrs(S.basePeakHrs, t); $('bulk').value = suggestHrs(S.baseBulkHrs, t); }
+  /* Which feed the schedule plans for: 'same' or 'night'. It sets the base starter peak. */
+  var feed = 'same';
+  var basePeak = function () { return D.feeds[feed].basePeakHrs; };
+  function applyPeak() { $('peak').value = suggestHrs(basePeak(), kitchenTemp()); }
+  function applyTemp() { applyPeak(); $('bulk').value = suggestHrs(S.baseBulkHrs, kitchenTemp()); }
   function tempNotes() {
     var t = kitchenTemp();
-    [['peak', S.basePeakHrs], ['bulk', S.baseBulkHrs]].forEach(function (f) {
+    [['peak', basePeak()], ['bulk', S.baseBulkHrs]].forEach(function (f) {
       var s = suggestHrs(f[1], t);
       $(f[0] + 'Note').textContent = num(f[0], s) === s ? 'Estimate for ' + t + '°F' : t + '°F suggests ' + fmtLen(s * 60);
     });
@@ -335,14 +349,15 @@
     return { oven: oven, fridge: fridge, shape: shape, preshape: preshape, bulkStart: bulkStart, salt: addMin(bulkStart, -6), starter: starter,
       autolyse: addMin(starter, -45), feed: addMin(starter, -p.peak * 60), out: out, ready: addMin(out, COOL_MIN) };
   }
-  /* Steps with an `end` are stages: they show start, stop and length. `passive` steps are not hands-on. */
+  /* Steps with an `end` are stages: they show start, stop and length. `passive` steps are not hands-on.
+     `anyHour` steps are hands-on but never get the night flag (feeding the starter). */
   function plan(picked, anchor, p) {
     var probe = times(picked, p), T = times(addMin(picked, (picked - probe[ANCHORS[anchor] || 'oven']) / 60000), p);
     var multi = loaves > 1;
     var steps = [
-      { t: T.feed, end: T.starter, s: 'Feed starter', n: 'Rises to its peak, right when you mix.' },
+      { t: T.feed, end: T.starter, s: 'Feed starter', n: D.feeds[feed].name + ' (' + D.feeds[feed].ratio + '): ' + feedText(feed) + '. Rises to its peak, right when you mix.', anyHour: true },
       { t: T.autolyse, end: T.starter, s: 'Autolyse', n: 'Flours + water, speed 1 for 1 min, then rest.' },
-      { t: T.starter, s: 'Add starter', n: 'Check it has peaked. Speed 1 for 1 min, then speed 2 for 3 min.' },
+      { t: T.starter, s: 'Add starter', n: 'Check it has peaked.' + (feed === 'night' ? ' Just past the peak is fine.' : '') + ' Speed 1 for 1 min, then speed 2 for 3 min.' },
       { t: T.salt, s: 'Add salt + held-back water', n: 'Speed 2 for 3–5 min, then windowpane test.' },
       { t: T.bulkStart, end: T.preshape, s: 'Bulk ferment', n: 'Into the oiled container. Mark the starting level. Done at 50–75% rise.', key: true },
       { t: addMin(T.bulkStart, 30), s: 'Coil fold 1', n: '' },
@@ -364,7 +379,8 @@
     }
     return steps.sort(function (a, b) { return a.t - b.t; });
   }
-  var nightSteps = function (steps) { return steps.filter(function (st) { return !st.passive && isNight(st.t); }); };
+  var flagged = function (st) { return !st.passive && !st.anyHour && isNight(st.t); };
+  var nightSteps = function (steps) { return steps.filter(flagged); };
 
   /* A fix for night steps: a cold proof in range first, else the smallest shift of the picked time. */
   function nightFix(picked, anchor, p) {
@@ -385,6 +401,15 @@
   }
 
   var ss = ls.get('sd-sched');
+  if (ss && D.feeds[ss.feed]) feed = ss.feed;
+  var placeFeed = initSeg($('feedPick'), 'button', function (b) { return b.getAttribute('aria-pressed') === 'true'; });
+  function showFeed(animate) {
+    document.querySelectorAll('#feedPick button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.f === feed)); });
+    placeFeed(animate);
+  }
+  document.querySelectorAll('#feedPick button').forEach(function (b) {
+    b.addEventListener('click', function () { feed = b.dataset.f; showFeed(true); applyPeak(); buildSchedule(); });
+  });
   $('when').value = (ss && ss.when) || defaultWhen();
   $('anchor').value = ss && ANCHORS[ss.anchor] ? ss.anchor : 'oven';
   if (ss && ss.cold) $('cold').value = ss.cold;
@@ -397,14 +422,15 @@
     tempNotes();
     var picked = new Date($('when').value), anchor = $('anchor').value;
     if (isNaN(picked)) { $('sched').innerHTML = ''; $('warn').style.display = 'none'; return; }
-    var p = { peak: num('peak', S.basePeakHrs), bulk: num('bulk', S.baseBulkHrs), cold: num('cold', S.defaultColdHrs) };
+    $('feedNote').textContent = D.feeds[feed].name + ' (' + D.feeds[feed].ratio + '): ' + feedText(feed);
+    var p = { peak: num('peak', basePeak()), bulk: num('bulk', S.baseBulkHrs), cold: num('cold', S.defaultColdHrs) };
     var steps = plan(picked, anchor, p);
     lastSteps = steps;
     var prev = '', html = '';
     steps.forEach(function (st) {
       var day = fmtDay(st.t);
       if (day !== prev) { html += '<div class="dayhead">' + day + '</div>'; prev = day; }
-      var n = !st.passive && isNight(st.t);
+      var n = flagged(st);
       var span = st.end ? '<div class="span">Until ' + (fmtDay(st.end) === day ? fmtTime(st.end) : fmtWkTime(st.end)) + ' · ' + fmtLen((st.end - st.t) / 60000) + '</div>' : '';
       html += '<div class="row' + (st.key ? ' key' : '') + (n ? ' night' : '') + '"><span class="time">' + fmtTime(st.t) + '</span><span>' + st.s + span + (st.n ? '<div class="note">' + st.n + '</div>' : '') + '</span></div>';
     });
@@ -415,12 +441,12 @@
         (night.length === 1 ? ' lands' : ' land') + ' between 8pm and 6am. ' + nightFix(picked, anchor, p);
       w.style.display = 'block';
     } else { w.style.display = 'none'; w.textContent = ''; }
-    ls.set('sd-sched', { when: $('when').value, anchor: anchor, temp: $('temp').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
+    ls.set('sd-sched', { when: $('when').value, anchor: anchor, feed: feed, temp: $('temp').value, peak: $('peak').value, bulk: $('bulk').value, cold: $('cold').value });
   }
   $('temp').addEventListener('input', function () { applyTemp(); buildSchedule(); });
   ['when', 'anchor', 'peak', 'bulk', 'cold'].forEach(function (id) { $(id).addEventListener('input', buildSchedule); $(id).addEventListener('change', buildSchedule); });
   $('resetSched').addEventListener('click', function () {
-    $('when').value = defaultWhen(); $('anchor').value = 'oven'; $('temp').value = S.defaultTempF; $('cold').value = S.defaultColdHrs; applyTemp(); buildSchedule();
+    $('when').value = defaultWhen(); $('anchor').value = 'oven'; feed = 'same'; showFeed(true); $('temp').value = S.defaultTempF; $('cold').value = S.defaultColdHrs; applyTemp(); buildSchedule();
   });
   var copyTimer = null;
   $('copy').addEventListener('click', function () {
@@ -457,6 +483,7 @@
   /* ---------- start ---------- */
   renderPhotos();
   renderIng(2, false);
+  showFeed(false);
   buildSchedule();
   schedReady = true;
   route(true);

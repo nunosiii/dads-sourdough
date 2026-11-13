@@ -10,6 +10,12 @@ Terms used on the Schedule tab.
 
 **Starter peak**: the point where the fed starter has risen as high as it will go and is ready to mix in. Also how many hours that takes after feeding.
 
+**Feed ratio**: the parts of starter, flour and water in one feeding, by weight, written starter : flour : water. Less starter in the feed means a longer wait to the starter peak.
+
+**Same-day feed**: a 1:1:1 feed. The starter peaks in a few hours, so you feed and mix on the same day.
+
+**Overnight feed**: a 1:5:5 feed given the evening before. The starter peaks while you sleep and is ready to mix when you get up.
+
 **Bake**: the first loaf goes into the Dutch oven.
 
 **Ready to eat**: the first loaf has finished its full 2-hour cool and can be sliced. An end anchor.
@@ -20,4 +26,4 @@ Terms used on the Schedule tab.
 
 **Hands-on step**: something you have to do yourself, such as feeding, mixing, folding, shaping, loading the oven or taking a loaf out. Waiting through a stage is not a hands-on step.
 
-**Night window**: 8:00 PM up to 6:00 AM. A hands-on step that falls in it gets flagged so you are not up late working on the bread.
+**Night window**: 8:00 PM up to 6:00 AM. A hands-on step that falls in it gets flagged so you are not up late working on the bread. Feeding the starter is the one exception: it takes two minutes, and an overnight feed belongs in the evening.

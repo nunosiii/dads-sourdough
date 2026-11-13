@@ -76,6 +76,11 @@ async function runCombo(browser, base, vp, scheme) {
     check(tag + n + ' loaves flour ' + g, (await flour()) === g, await flour());
     check(tag + '4-loaf warning only at 4 (n=' + n + ')', (await bigVisible()) === (n === 4));
   }
+  const feedRows = () => page.evaluate(() => [...document.querySelectorAll('#feed .row small')].map(e => e.textContent.trim()).join(' | '));
+  check(tag + '4 loaves feed amounts', (await feedRows()) === '150g starter + 150g flour + 150g water | 40g starter + 200g flour + 200g water', await feedRows());
+  await page.click('#scale button[data-n="2"]');
+  check(tag + '2 loaves feed amounts', (await feedRows()) === '75g starter + 75g flour + 75g water | 20g starter + 100g flour + 100g water', await feedRows());
+  await page.click('#scale button[data-n="4"]');
   const step1_4 = await page.evaluate(() => document.querySelector('#steps .step .body').textContent);
   check(tag + '4 loaves method shows per-batch amounts', /900g bread flour/.test(step1_4) && /per batch/.test(step1_4));
   const th = await page.evaluate(() => { const t = document.querySelector('#scale .thumb'); return t ? t.style.transform + '|' + t.style.width : ''; });
@@ -126,6 +131,22 @@ async function runCombo(browser, base, vp, scheme) {
     return out;
   });
   check(tag + 'kitchen temp sets starter and bulk hours', JSON.stringify(temps) === JSON.stringify({ 68: ['6.75', '6'], 74: ['5.5', '4.75'], 72: ['5.75', '5.25'] }), JSON.stringify(temps));
+  // overnight feed
+  const pressed = () => page.evaluate(() => document.querySelector('#feedPick button[aria-pressed=true]').dataset.f);
+  check(tag + 'feed defaults to same day', (await pressed()) === 'same', await pressed());
+  await page.click('#feedPick button[data-f="night"]');
+  const pb = await page.evaluate(() => [document.getElementById('peak').value, document.getElementById('bulk').value, document.getElementById('feedNote').textContent]);
+  check(tag + 'night before sets a longer peak and leaves bulk', pb[0] === '10' && pb[1] === '5.25' && /Overnight feed \(1:5:5\): 20g starter/.test(pb[2]), JSON.stringify(pb));
+  await page.evaluate(w => { const set = (id, v) => { const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }; set('anchor', 'autolyse'); set('when', w); set('cold', '14'); }, when.replace('T08:00', 'T07:00'));
+  const nrows = await scheduleRows(page);
+  check(tag + 'evening feed is not flagged', hasRow(nrows, /^9:45\s?PM \| Feed starter$/), nrows.filter(r => /Feed/.test(r)).join(' / '));
+  const nwarn = nrows[nrows.length - 1];
+  check(tag + 'morning mix suggests a longer cold proof', !/Feed starter/.test(nwarn) && /A (1[6-9]|20)(\.5)?-hr cold proof instead of 14 clears it/.test(nwarn), nwarn);
+  check(tag + 'feed persisted', (await page.evaluate(() => JSON.parse(localStorage.getItem('sd-sched')).feed)) === 'night');
+  await page.reload(); await page.waitForSelector('#v-schedule.on');
+  check(tag + 'feed survives reload', (await pressed()) === 'night' && (await page.inputValue('#peak')) === '10');
+  await page.click('#resetSched');
+  check(tag + 'reset returns to same day', (await pressed()) === 'same' && (await page.inputValue('#peak')) === '5.75', await page.inputValue('#peak'));
   await setSchedule(page, when, 'oven');
   const mine2 = await scheduleRows(page);
   check(tag + '2-loaf oven 8:00 AM row present', mine2.some(r => /^8:00\s?AM \| Poke test|^8:00\s?AM \| Loaf 1: poke test/i.test(r)), mine2.filter(r => /8:00/.test(r)).join(' / '));
